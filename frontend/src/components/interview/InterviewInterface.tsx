@@ -21,6 +21,12 @@ const InterviewInterface: React.FC = () => {
   const speech = useSpeech();
   const faceTracking = useFaceTracking();
 
+  // Extension connection status
+  const [extensionStatus, setExtensionStatus] = useState<{
+    speech: boolean;
+    video: boolean;
+  }>({ speech: false, video: false });
+
   const [currentAnswer, setCurrentAnswer] = useState('');
   const [interviewStage, setInterviewStage] = useState<'not-started' | 'question' | 'answering' | 'analysis'>('not-started');
 

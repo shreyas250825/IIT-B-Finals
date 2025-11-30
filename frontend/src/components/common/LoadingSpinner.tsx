@@ -65,55 +65,7 @@ const LoadingSpinner: React.FC<{ size?: 'sm' | 'md' | 'lg'; text?: string }> = (
         </div>
       )}
 
-      {/* Add custom animations */}
-      <style jsx>{`
-        @keyframes spin-reverse {
-          from {
-            transform: rotate(360deg);
-          }
-          to {
-            transform: rotate(0deg);
-          }
-        }
-        
-        @keyframes spin-slow {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-        
-        @keyframes spin-slow-reverse {
-          from {
-            transform: rotate(360deg);
-          }
-          to {
-            transform: rotate(0deg);
-          }
-        }
-        
-        .animate-spin-reverse {
-          animation: spin-reverse 2s linear infinite;
-        }
-        
-        .animate-spin-slow {
-          animation: spin-slow 4s linear infinite;
-        }
-        
-        .animate-spin-slow-reverse {
-          animation: spin-slow-reverse 6s linear infinite;
-        }
-        
-        .delay-100 {
-          animation-delay: 0.1s;
-        }
-        
-        .delay-200 {
-          animation-delay: 0.2s;
-        }
-      `}</style>
+
     </div>
   );
 };
