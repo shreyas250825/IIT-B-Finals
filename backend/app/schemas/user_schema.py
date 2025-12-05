@@ -1,10 +1,17 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from typing import Optional
+import re
 
 
 class UserBase(BaseModel):
     email: str
-    full_name: str
+    name: Optional[str] = None
+
+    @validator('email')
+    def validate_email(cls, v):
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', v):
+            raise ValueError('Invalid email format')
+        return v.lower()
 
 
 class UserCreate(UserBase):
@@ -21,3 +28,10 @@ class User(UserBase):
 class UserLogin(BaseModel):
     email: str
     password: str
+
+    @validator('email')
+    def validate_email(cls, v):
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', v):
+            raise ValueError('Invalid email format')
+        return v.lower()
+

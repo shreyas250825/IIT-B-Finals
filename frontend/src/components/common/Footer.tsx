@@ -1,4 +1,3 @@
-import React from 'react';
 import { Sparkles, Github, Twitter, Linkedin, Mail, Heart, Rocket, Shield, Zap, TrendingUp } from 'lucide-react';
 
 const Footer = () => {
@@ -44,10 +43,10 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { icon: Twitter, href: '#twitter', color: 'from-blue-400 to-blue-600' },
-    { icon: Linkedin, href: '#linkedin', color: 'from-blue-500 to-blue-700' },
+    { icon: Twitter, href: '#twitter', color: 'from-sky-300 to-sky-500' },
+    { icon: Linkedin, href: '#linkedin', color: 'from-sky-400 to-cyan-500' },
     { icon: Github, href: '#github', color: 'from-gray-600 to-gray-800' },
-    { icon: Mail, href: '#mail', color: 'from-purple-500 to-pink-500' }
+    { icon: Mail, href: '#mail', color: 'from-cyan-400 to-blue-500' }
   ];
 
   const features = [
@@ -57,15 +56,15 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="relative bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 border-t border-white/10 overflow-hidden">
+    <footer className="relative bg-gradient-to-br from-slate-950 via-sky-950 to-slate-900 border-t border-white/10 overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-sky-400/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
       {/* Top Gradient Line */}
-      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent"></div>
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-sky-400 to-transparent"></div>
 
       <div className="relative max-w-7xl mx-auto px-6 pt-16 pb-8">
         {/* Main Footer Content */}
@@ -75,13 +74,13 @@ const Footer = () => {
             {/* Logo */}
             <div className="flex items-center space-x-3 mb-6 group cursor-pointer">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity duration-300 animate-pulse"></div>
-                <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-xl transform group-hover:scale-110 transition-all duration-300 shadow-xl">
+                <div className="absolute inset-0 bg-gradient-to-r from-sky-400 to-sky-500 rounded-xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity duration-300 animate-pulse"></div>
+                <div className="relative bg-gradient-to-br from-sky-400 to-sky-500 p-3 rounded-xl transform group-hover:scale-110 transition-all duration-300 shadow-xl">
                   <Sparkles className="w-7 h-7 text-white" />
                 </div>
               </div>
               <div>
-                <span className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
+                <span className="text-3xl font-bold bg-gradient-to-r from-sky-300 to-sky-500 bg-clip-text text-transparent">
                   Intervize
                 </span>
                 <div className="text-xs text-gray-500">AI Interview Excellence</div>
@@ -98,8 +97,8 @@ const Footer = () => {
             <div className="space-y-2 mb-6">
               {features.map((feature, index) => (
                 <div key={index} className="flex items-center space-x-2 text-sm">
-                  <div className="p-1.5 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg border border-blue-500/30">
-                    <feature.icon className="w-3.5 h-3.5 text-blue-400" />
+                  <div className="p-1.5 bg-gradient-to-br from-sky-400/20 to-cyan-500/20 rounded-lg border border-sky-400/30">
+                    <feature.icon className="w-3.5 h-3.5 text-sky-300" />
                   </div>
                   <span className="text-gray-400">{feature.text}</span>
                 </div>
@@ -127,7 +126,7 @@ const Footer = () => {
           {footerSections.map((section, index) => (
             <div key={index} className="space-y-4">
               <h3 className="text-white font-semibold text-lg mb-4 flex items-center">
-                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-sky-300 to-cyan-400 bg-clip-text text-transparent">
                   {section.title}
                 </span>
               </h3>
@@ -138,7 +137,7 @@ const Footer = () => {
                       href={link.href}
                       className="text-gray-400 hover:text-white transition-all duration-300 text-sm group flex items-center"
                     >
-                      <span className="w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-4 transition-all duration-300 mr-0 group-hover:mr-2"></span>
+                      <span className="w-0 h-0.5 bg-gradient-to-r from-sky-400 to-cyan-500 group-hover:w-4 transition-all duration-300 mr-0 group-hover:mr-2"></span>
                       {link.label}
                     </a>
                   </li>
@@ -151,12 +150,12 @@ const Footer = () => {
         {/* Newsletter Section */}
         <div className="mb-12">
           <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-sky-400/20 to-cyan-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
             <div className="relative bg-gradient-to-r from-slate-800/50 to-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
               <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold text-white mb-2 flex items-center">
-                    <Rocket className="w-6 h-6 mr-2 text-blue-400" />
+                    <Rocket className="w-6 h-6 mr-2 text-sky-300" />
                     Stay Updated
                   </h3>
                   <p className="text-gray-400">
@@ -168,11 +167,11 @@ const Footer = () => {
                     <input
                       type="email"
                       placeholder="Enter your email"
-                      className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300"
+                      className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 transition-all duration-300"
                     />
                     <button className="relative group overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity"></div>
-                      <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 rounded-xl font-semibold text-white whitespace-nowrap transform group-hover:scale-105 transition-all duration-300">
+                      <div className="absolute inset-0 bg-gradient-to-r from-sky-400 to-cyan-500 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity"></div>
+                      <div className="relative bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 rounded-xl font-semibold text-white whitespace-nowrap transform group-hover:scale-105 transition-all duration-300">
                         Subscribe
                       </div>
                     </button>
@@ -205,7 +204,7 @@ const Footer = () => {
                   className="text-gray-400 hover:text-white transition-colors duration-300 relative group"
                 >
                   {item}
-                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-full transition-all duration-300"></span>
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-sky-400 to-cyan-500 group-hover:w-full transition-all duration-300"></span>
                 </a>
               ))}
             </div>
@@ -213,8 +212,8 @@ const Footer = () => {
 
           {/* Tech Badge */}
           <div className="mt-6 text-center">
-            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-full px-4 py-2 backdrop-blur-sm">
-              <Zap className="w-4 h-4 text-blue-400" />
+            <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-sky-400/10 to-cyan-500/10 border border-sky-400/30 rounded-full px-4 py-2 backdrop-blur-sm">
+              <Zap className="w-4 h-4 text-sky-300" />
               <span className="text-xs text-gray-400">
                 Powered by Advanced AI • Real-time Analysis • Enterprise Grade Security
               </span>

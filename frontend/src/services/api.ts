@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -9,11 +9,12 @@ const api = axios.create({
   },
 });
 
-// Type definitions
+// Existing types and clients (kept for compatibility with other screens)
 export interface InterviewProfile {
   role: string;
-  experience_level: string;
-  resume_text?: string;
+  interview_type: string;
+  round_type: string;
+  resume_data?: any;
 }
 
 export interface AnswerSubmission {
@@ -77,9 +78,67 @@ export const interviewApi = {
   },
 
   listReports: async () => {
-    const response = await api.get('/api/v1/reports');
-    return response.data;
+    const response = await fetch(`${BASE}/api/interview/reports`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch reports: ${response.status}`);
+    }
+    return response.json();
   },
 };
 
 export { api };
+
+// New lightweight REST helpers for the simplified interview flow
+
+const BASE = API_BASE_URL;
+
+export async function startInterviewSimple(profile: any, role?: string, interviewType?: string, persona?: string) {
+  const body = {
+    profile,
+    role: role || profile?.role || profile?.estimated_role,
+    interview_type: interviewType || profile?.interview_type || 'mixed',
+    persona: persona || profile?.persona || 'male',
+  };
+  const res = await fetch(`${BASE}/api/interview/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to start interview: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function submitAnswerSimple(payload: {
+  session_id: string;
+  question_id: string;
+  transcript: string;
+  metrics: any;
+}) {
+  const res = await fetch(`${BASE}/api/interview/answer`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to submit answer: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function sendMetricsSimple(metrics: any) {
+  await fetch(`${BASE}/api/metrics`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(metrics),
+  });
+}
+
+export async function getReportSimple(sessionId: string) {
+  const res = await fetch(`${BASE}/api/interview/report/${sessionId}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch report: ${res.status}`);
+  }
+  return res.json();
+}

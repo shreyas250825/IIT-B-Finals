@@ -233,6 +233,16 @@ ai-mock-interview-simulator/
    cd ai-mock-interview-simulator
    ```
 
+2. **Install Chrome Extension (Required for Video/Camera)**
+   ```bash
+   # Load the Chrome extension in developer mode
+   # 1. Open Chrome and go to chrome://extensions/
+   # 2. Enable "Developer mode" in the top right
+   # 3. Click "Load unpacked" and select the chrome-extension folder
+   # 4. Note the extension ID from the extension card
+   # 5. Update the extensionId in frontend/src/hooks/useWebcam.ts with the actual ID
+   ```
+
 2. **Backend Setup**
    ```bash
    cd backend
@@ -276,12 +286,12 @@ ai-mock-interview-simulator/
 
 ## API Documentation
 
-### Interview Endpoints
+### Interview Endpoints (simplified mock-interview flow)
 
-- `POST /api/v1/interview/start` - Start new interview session
-- `GET /api/v1/interview/{session_id}/next-question` - Get next question
-- `POST /api/v1/interview/submit-answer` - Submit answer for analysis
-- `POST /api/v1/interview/{session_id}/complete` - Complete interview
+- `POST /api/interview/start` - Start new interview session (returns `session_id` and first `question`)
+- `POST /api/interview/answer` - Submit `{ session_id, question_id, transcript, metrics }` for evaluation
+- `POST /api/metrics` - (Optional) Push extra metrics blobs
+- `GET /api/interview/report/{session_id}` - Get final summary report for a session
 
 ### Report Endpoints
 

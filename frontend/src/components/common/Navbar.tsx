@@ -1,12 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Mic, BarChart3, Home, Info, User, Menu, X } from 'lucide-react';
+import { Sparkles, Mic, BarChart3, Home, Info, User, Menu, X, LogOut } from 'lucide-react';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeLink, setActiveLink] = useState('home');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userName, setUserName] = useState<string>('');
+  
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = () => {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          setIsAuthenticated(user.isAuthenticated === true);
+          setUserName(user.name || user.email || 'User');
+        } catch (e) {
+          setIsAuthenticated(false);
+          setUserName('');
+        }
+      } else {
+        setIsAuthenticated(false);
+        setUserName('');
+      }
+    };
+    
+    checkAuth();
+    
+    // Listen for storage changes (e.g., when user logs in from another tab)
+    window.addEventListener('storage', checkAuth);
+    // Listen for custom auth change events (same tab)
+    window.addEventListener('authChange', checkAuth);
+    // Also check on focus
+    window.addEventListener('focus', checkAuth);
+    
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('authChange', checkAuth);
+      window.removeEventListener('focus', checkAuth);
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,18 +53,38 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleLogout = () => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        user.isAuthenticated = false;
+        localStorage.setItem('user', JSON.stringify(user));
+      } catch (e) {
+        localStorage.removeItem('user');
+      }
+    } else {
+      localStorage.removeItem('user');
+    }
+    setIsAuthenticated(false);
+    setUserName('');
+    // Trigger auth change event for Navbar update
+    window.dispatchEvent(new Event('authChange'));
+    navigate('/signin');
+  };
+
   const navLinks = [
     { id: 'home', label: 'Home', icon: Home, href: '/' },
     { id: 'interview', label: 'Start Interview', icon: Mic, href: '/setup' },
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3, href: '/dashboard' },
-    { id: 'reports', label: 'Reports', icon: BarChart3, href: '/reports' },
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart3, href: '/dashboard', protected: true },
+    { id: 'reports', label: 'Report', icon: BarChart3, href: '/report', protected: true },
     { id: 'about', label: 'About', icon: Info, href: '/about' }
-  ];
+  ].filter(link => !link.protected || isAuthenticated);
 
   return (
     <>
       {/* Navbar */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 ${
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 bg-gradient-to-br from-slate-950 via-sky-950 to-slate-900 ${
         scrolled
           ? 'backdrop-blur-2xl shadow-2xl border-b border-white/10'
           : ''
@@ -39,14 +96,14 @@ const Navbar = () => {
             <div onClick={() => navigate('/')} className="flex items-center space-x-3 group cursor-pointer">
               <div className="relative">
                 {/* Glow Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl blur-lg opacity-75 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-sky-400 to-sky-500 rounded-xl blur-lg opacity-75 group-hover:opacity-100 transition-all duration-300 animate-pulse"></div>
                 {/* Icon Container */}
-                <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 p-2.5 rounded-xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-xl">
+                <div className="relative bg-gradient-to-br from-sky-400 to-sky-500 p-2.5 rounded-xl transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-xl">
                   <Sparkles className="w-6 h-6 text-white" />
                 </div>
               </div>
               <div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent tracking-tight">
+                <span className="text-2xl font-bold bg-gradient-to-r from-sky-300 to-sky-500 bg-clip-text text-transparent tracking-tight">
                   Intervize
                 </span>
                 <div className="text-xs text-gray-500 -mt-1">AI Interview Coach</div>
@@ -71,8 +128,8 @@ const Navbar = () => {
                   {/* Active Background */}
                   {activeLink === link.id && (
                     <>
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-blue-600/20 rounded-xl blur-sm"></div>
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-blue-600/10 rounded-xl border border-blue-500/30"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-sky-400/20 to-sky-500/20 rounded-xl blur-sm"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-sky-400/10 to-sky-500/10 rounded-xl border border-sky-400/30"></div>
                     </>
                   )}
                   
@@ -86,28 +143,64 @@ const Navbar = () => {
                   </span>
                   
                   {/* Bottom Indicator */}
-                  <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 ${
+                  <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 h-0.5 bg-gradient-to-r from-sky-400 to-sky-500 transition-all duration-300 ${
                     activeLink === link.id ? 'w-3/4' : 'w-0 group-hover:w-1/2'
                   }`}></div>
                 </button>
               ))}
             </div>
 
-            {/* Right Side - Login/Profile Button */}
-            <div className="hidden lg:flex items-center space-x-4">
-              <button className="relative group overflow-hidden">
-                {/* Animated Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                {/* Button Content */}
-                <div className="relative flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-2.5 rounded-xl font-semibold text-white shadow-lg transform group-hover:scale-105 transition-all duration-300">
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                    <User className="w-4 h-4" />
+            {/* Right Side - Login/Sign Up or User Profile */}
+            <div className="hidden lg:flex items-center space-x-3">
+              {isAuthenticated ? (
+                <>
+                  {/* User Profile */}
+                  <div className="flex items-center space-x-3 pl-4 border-l border-white/10">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-400 to-cyan-500 flex items-center justify-center">
+                      <User className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{userName}</p>
+                      <p className="text-xs text-gray-400">Signed in</p>
+                    </div>
                   </div>
-                  <span>Login</span>
+                  {/* Logout Button */}
+                  <button 
+                    onClick={handleLogout}
+                    className="relative group overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-orange-500 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative flex items-center space-x-2 bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl font-medium text-white hover:bg-white/10 transition-all duration-300">
+                      <LogOut className="w-4 h-4" />
+                      <span>Logout</span>
+                    </div>
+                  </button>
+                </>
+              ) : (
+                <>
+                  {/* Sign In Button */}
+                  <button 
+                    onClick={() => navigate('/signin')}
+                    className="relative group overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-sky-400 to-sky-500 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative flex items-center space-x-2 bg-white/5 border border-white/10 px-4 py-2.5 rounded-xl font-medium text-white hover:bg-white/10 transition-all duration-300">
+                      <User className="w-4 h-4" />
+                      <span>Sign In</span>
+                    </div>
+                  </button>
+                  {/* Sign Up Button */}
+                  <button 
+                    onClick={() => navigate('/signup')}
+                    className="relative group overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-sky-400 to-cyan-500 rounded-xl blur opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative flex items-center space-x-2 bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-2.5 rounded-xl font-semibold text-white shadow-lg transform group-hover:scale-105 transition-all duration-300">
+                      <span>Sign Up</span>
                 </div>
               </button>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -135,7 +228,7 @@ const Navbar = () => {
                 }}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 ${
                   activeLink === link.id
-                    ? 'bg-gradient-to-r from-blue-500/20 to-blue-600/20 text-white border border-blue-500/30'
+                    ? 'bg-gradient-to-r from-sky-400/20 to-sky-500/20 text-white border border-sky-400/30'
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -144,11 +237,54 @@ const Navbar = () => {
               </button>
             ))}
             
-            {/* Mobile Login Button */}
-            <button onClick={() => navigate('/login')} className="w-full mt-4 flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 rounded-xl font-semibold text-white shadow-lg">
+            {/* Mobile Auth Buttons */}
+            {isAuthenticated ? (
+              <>
+                <div className="w-full mt-4 p-4 bg-slate-800/50 rounded-xl border border-white/10">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-sky-400 to-cyan-500 flex items-center justify-center">
+                      <User className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">{userName}</p>
+                      <p className="text-xs text-gray-400">Signed in</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center justify-center space-x-2 bg-red-500/20 border border-red-500/30 px-6 py-3 rounded-xl font-semibold text-red-300 hover:bg-red-500/30 transition-all"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="w-full mt-4 space-y-2">
+                <button 
+                  onClick={() => {
+                    navigate('/signin');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center space-x-2 bg-white/5 border border-white/10 px-6 py-3 rounded-xl font-semibold text-white hover:bg-white/10 transition-all"
+                >
               <User className="w-5 h-5" />
-              <span>Login / Sign Up</span>
+                  <span>Sign In</span>
+                </button>
+                <button 
+                  onClick={() => {
+                    navigate('/signup');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-sky-500 to-cyan-500 px-6 py-3 rounded-xl font-semibold text-white shadow-lg"
+                >
+                  <span>Sign Up</span>
             </button>
+              </div>
+            )}
           </div>
         </div>
       </nav>

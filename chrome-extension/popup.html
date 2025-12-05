@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 300px;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    .status {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .status.active {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status.inactive {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    #startWebcam {
+      background-color: #28a745;
+      color: white;
+    }
+    #stopWebcam {
+      background-color: #dc3545;
+      color: white;
+    }
+    #startRecording {
+      background-color: #007bff;
+      color: white;
+    }
+    #stopRecording {
+      background-color: #ffc107;
+      color: black;
+    }
+    #info {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      font-size: 12px;
+      word-wrap: break-word;
+    }
+  </style>
+</head>
+<body>
+  <h2>Intervize Video Extension</h2>
+
+  <div id="status" class="status inactive">Status: Inactive</div>
+
+  <button id="startWebcam">Start Webcam</button>
+  <button id="stopWebcam" disabled>Stop Webcam</button>
+  <button id="startRecording" disabled>Start Recording</button>
+  <button id="stopRecording" disabled>Stop Recording</button>
+
+  <div id="info">Ready to use. Click "Start Webcam" to begin.</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

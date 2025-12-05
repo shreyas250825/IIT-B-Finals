@@ -1,8 +1,9 @@
 # backend/app/ai_engines/behavioral_engine.py
-from transformers import pipeline
-from sentence_transformers import SentenceTransformer
+# DEPRECATED: HuggingFace imports removed - using OpenRouter instead
+# from transformers import pipeline
+# from sentence_transformers import SentenceTransformer
 from ..services.llm import llm_service
-import numpy as np
+# import numpy as np
 import re
 import logging
 
@@ -20,19 +21,13 @@ class BehavioralEngine:
             return
 
         try:
-            logger.info("Initializing behavioral analysis models... This may take a few minutes on first run.")
-
-            # Use optimized models for CPU compatibility
-            self.sentiment_analyzer = pipeline(
-                "sentiment-analysis",
-                model="cardiffnlp/twitter-roberta-base-sentiment-latest",
-                device=-1  # CPU
-            )
-            self.similarity_model = SentenceTransformer('all-MiniLM-L6-v2')
+            # DEPRECATED: HuggingFace models removed - using OpenRouter instead
+            logger.warning("BehavioralEngine models deprecated. Using OpenRouter for evaluation.")
+            # self.sentiment_analyzer = pipeline(...)
+            # self.similarity_model = SentenceTransformer('all-MiniLM-L6-v2')
             self._initialized = True
-            logger.info("Behavioral engine models loaded successfully")
         except Exception as e:
-            logger.error(f"Failed to load behavioral engine models: {e}")
+            logger.error(f"Failed to initialize behavioral engine: {e}")
             self.sentiment_analyzer = None
             self.similarity_model = None
 
@@ -92,19 +87,16 @@ class BehavioralEngine:
         }
 
     def _calculate_relevance(self, question: str, answer: str) -> float:
-        """Calculate relevance using sentence embeddings"""
+        """Calculate relevance using simple keyword matching (deprecated similarity model)"""
         self._initialize_models()
-        if not self.similarity_model:
-            return 0.5
-
+        # Simple keyword-based relevance as fallback
         try:
-            question_embedding = self.similarity_model.encode(question)
-            answer_embedding = self.similarity_model.encode(answer)
-
-            similarity = np.dot(question_embedding, answer_embedding) / (
-                np.linalg.norm(question_embedding) * np.linalg.norm(answer_embedding)
-            )
-            return max(0, float(similarity))
+            question_words = set(question.lower().split())
+            answer_words = set(answer.lower().split())
+            common_words = question_words.intersection(answer_words)
+            # Simple relevance score based on common words
+            relevance = min(1.0, len(common_words) / max(1, len(question_words)) * 2)
+            return max(0.3, relevance)  # Minimum 0.3 relevance
         except Exception as e:
             logger.error(f"Error calculating relevance: {e}")
             return 0.5

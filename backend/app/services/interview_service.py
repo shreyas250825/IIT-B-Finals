@@ -10,30 +10,40 @@ from app.schemas.interview_schema import InterviewCreate
 from app.schemas.analysis_schema import AnswerSubmission, AnalysisResult
 from app.ai_engines.scoring_engine import ScoringEngine
 from app.ai_engines.behavioral_engine import BehavioralEngine
+from app.services.llm import llm_service
+from app.services.question_service import get_question_service
 
 class InterviewService:
     def __init__(self, db: Session):
         self.db = db
         self.scoring_engine = ScoringEngine()
         self.behavioral_engine = BehavioralEngine()
-    
+
     def create_interview(self, interview_data: InterviewCreate):
         """Create a new interview session"""
         session_id = str(uuid.uuid4())
-        
+
+        # Generate questions for this interview
+        question_service_instance = get_question_service(self.db)
+        questions = question_service_instance.get_questions_for_interview(
+            role=interview_data.role,
+            interview_type=interview_data.interview_type,
+            count=5  # Default number of questions
+        )
+
         interview = Interview(
             session_id=session_id,
-            role=interview_data.role.value,
-            interview_type=interview_data.interview_type.value,
-            round_type=interview_data.round_type.value,
-            questions=[],
+            role=interview_data.role,
+            interview_type=interview_data.interview_type,
+            round_type=interview_data.round_type,
+            questions=questions,
             answers=[]
         )
-        
+
         self.db.add(interview)
         self.db.commit()
         self.db.refresh(interview)
-        
+
         return interview
     
     def analyze_answer(self, answer_data: AnswerSubmission):
@@ -69,6 +79,11 @@ class InterviewService:
             confidence_score * 0.25
         )
         
+        # Generate interviewer response
+        interviewer_response = self._generate_interviewer_response(
+            current_question, answer_data.answer_text, interview
+        )
+
         # Save response
         response = Response(
             interview_id=interview.id,
@@ -81,20 +96,22 @@ class InterviewService:
             overall_score=overall_score,
             analysis_data={
                 "technical_analysis": technical_analysis,
-                "behavioral_analysis": behavioral_analysis
+                "behavioral_analysis": behavioral_analysis,
+                "interviewer_response": interviewer_response
             }
         )
-        
+
         self.db.add(response)
         interview.current_question_index += 1
         self.db.commit()
-        
+
         return AnalysisResult(
             technical_score=technical_score,
             communication_score=communication_score,
             confidence_score=confidence_score,
             overall_score=overall_score,
             feedback=technical_analysis.get('feedback', ''),
+            interviewer_response=interviewer_response,
             detailed_analysis={
                 "technical": technical_analysis,
                 "behavioral": behavioral_analysis
@@ -176,3 +193,25 @@ class InterviewService:
             suggestions.append("Work on speaking with more confidence and reducing filler words")
         
         return suggestions
+
+    def _generate_interviewer_response(self, question: str, answer: str, interview):
+        """Generate interviewer-like response based on candidate's answer"""
+        try:
+            # Build conversation history from previous responses
+            responses = self.db.query(Response).filter(
+                Response.interview_id == interview.id
+            ).order_by(Response.question_index).all()
+
+            conversation_history = []
+            for resp in responses[-3:]:  # Last 3 exchanges
+                conversation_history.append((resp.question, resp.answer_text))
+
+            # Generate interviewer response
+            interviewer_response = llm_service.generate_interviewer_response(
+                question, answer, conversation_history
+            )
+
+            return interviewer_response
+
+        except Exception as e:
+            return "Thank you for your answer. Let's continue with the next question."

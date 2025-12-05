@@ -1,239 +1,200 @@
 // src/hooks/useSpeech.ts
-import { useState, useRef, useCallback, useEffect } from 'react';
+// Improved wrapper around the browser Web Speech API with better error handling.
 
-interface SpeechState {
-  isListening: boolean;
-  transcript: string;
-  isSpeaking: boolean;
-  error: string | null;
-  extensionConnected: boolean;
-}
+export type OnResult = (text: string) => void;
 
 declare global {
   interface Window {
-    chrome?: any;
+    webkitSpeechRecognition?: any;
+    SpeechRecognition?: any;
   }
 }
 
-export const useSpeech = () => {
-  const [state, setState] = useState<SpeechState>({
-    isListening: false,
+export function useSpeechRecognition() {
+  const SpeechRecognitionCtor =
+    (typeof window !== 'undefined' &&
+      ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)) ||
+    null;
+
+  if (!SpeechRecognitionCtor) {
+    console.warn('SpeechRecognition not supported');
+    return {
+      start: (_: OnResult) => {},
+      stop: () => {},
+      supported: false,
     transcript: '',
-    isSpeaking: false,
-    error: null,
-    extensionConnected: false
-  });
+    };
+  }
 
-  const portRef = useRef<any>(null);
-  const extensionId = 'your-chrome-extension-id'; // Replace with actual extension ID
+  let recognition: any | null = null;
+  let listening = false;
+  let currentTranscript = '';
 
-  // Check if Chrome extension is available
-  const checkExtensionAvailability = useCallback(() => {
-    return new Promise<boolean>((resolve) => {
-      if (!window.chrome || !window.chrome.runtime) {
-        resolve(false);
-        return;
-      }
-
+  function init() {
+    if (recognition) {
       try {
-        const port = window.chrome.runtime.connect(extensionId);
-        port.onDisconnect.addListener(() => {
-          setState(prev => ({ ...prev, extensionConnected: false }));
-          resolve(false);
-        });
-
-        port.onMessage.addListener((message: any) => {
-          if (message.type === 'EXTENSION_READY') {
-            setState(prev => ({ ...prev, extensionConnected: true }));
-            resolve(true);
-          }
-        });
-
-        // Give it a moment to connect
-        setTimeout(() => resolve(false), 1000);
-      } catch (error) {
-        resolve(false);
+        recognition.stop();
+      } catch (e) {
+        // Ignore errors when stopping
       }
-    });
-  }, [extensionId]);
-
-  // Initialize connection to Chrome extension
-  const initializeExtensionConnection = useCallback(async () => {
-    try {
-      const isAvailable = await checkExtensionAvailability();
-      if (!isAvailable) {
-        throw new Error('Chrome extension for speech recognition not available. Please install the Intervize Voice Extension.');
-      }
-
-      portRef.current = window.chrome.runtime.connect(extensionId);
-
-      portRef.current.onMessage.addListener((message: any) => {
-        switch (message.type) {
-          case 'SPEECH_RESULT':
-            setState(prev => ({
-              ...prev,
-              transcript: message.transcript,
-              error: null
-            }));
-            break;
-          case 'SPEECH_START':
-            setState(prev => ({
-              ...prev,
-              isListening: true,
-              error: null
-            }));
-            break;
-          case 'SPEECH_END':
-            setState(prev => ({
-              ...prev,
-              isListening: false
-            }));
-            break;
-          case 'SPEECH_ERROR':
-            setState(prev => ({
-              ...prev,
-              error: message.error,
-              isListening: false
-            }));
-            break;
-          case 'TTS_START':
-            setState(prev => ({
-              ...prev,
-              isSpeaking: true,
-              error: null
-            }));
-            break;
-          case 'TTS_END':
-            setState(prev => ({
-              ...prev,
-              isSpeaking: false
-            }));
-            break;
-          case 'TTS_ERROR':
-            setState(prev => ({
-              ...prev,
-              isSpeaking: false,
-              error: message.error
-            }));
-            break;
-        }
-      });
-
-      portRef.current.onDisconnect.addListener(() => {
-        setState(prev => ({
-          ...prev,
-          extensionConnected: false,
-          isListening: false,
-          isSpeaking: false,
-          error: 'Extension disconnected'
-        }));
-      });
-
-      // Request extension to initialize
-      portRef.current.postMessage({ type: 'INIT_SPEECH' });
-
-    } catch (err: any) {
-      setState(prev => ({ ...prev, error: err.message }));
     }
-  }, [checkExtensionAvailability, extensionId]);
 
-  // Start listening via Chrome extension
-  const startListening = useCallback(() => {
-    if (!portRef.current) {
-      setState(prev => ({ ...prev, error: 'Speech extension not connected' }));
+    recognition = new SpeechRecognitionCtor();
+    recognition.lang = 'en-US';
+    recognition.interimResults = true; // Enable interim results for real-time feedback
+    recognition.maxAlternatives = 1;
+    recognition.continuous = true; // Enable continuous recognition
+  }
+
+  function start(onResult: OnResult) {
+    // Stop any existing recognition first
+    if (recognition && listening) {
+    try {
+        recognition.stop();
+      } catch (e) {
+        // Ignore
+      }
+    }
+
+    // Reset transcript completely
+    currentTranscript = '';
+
+    if (!recognition) {
+      init();
+      }
+
+    // Reset recognition state
+    recognition.onresult = (e: any) => {
+      try {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        // Only process new results (from resultIndex onwards)
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const transcript = e.results[i][0].transcript;
+          if (e.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
+        }
+        }
+
+        // Update current transcript only with new final results
+        if (finalTranscript) {
+          currentTranscript += finalTranscript;
+          // Send the complete accumulated transcript
+          onResult(currentTranscript.trim());
+        } else if (interimTranscript) {
+          // For interim results, show current + interim
+          onResult((currentTranscript + interimTranscript).trim());
+        }
+      } catch (err) {
+        console.error('STT parse error', err);
+    }
+    };
+
+    recognition.onerror = (e: any) => {
+      // Only log non-critical errors
+      if (e.error === 'no-speech' || e.error === 'audio-capture') {
+        // These are expected and can be ignored in continuous mode
       return;
     }
 
-    try {
-      setState(prev => ({ ...prev, transcript: '', error: null }));
-      portRef.current.postMessage({ type: 'START_LISTENING' });
-    } catch (err: any) {
-      setState(prev => ({ ...prev, error: err.message }));
-    }
-  }, []);
-
-  // Stop listening via Chrome extension
-  const stopListening = useCallback(() => {
-    if (!portRef.current) return;
-
-    try {
-      portRef.current.postMessage({ type: 'STOP_LISTENING' });
-    } catch (err: any) {
-      setState(prev => ({ ...prev, error: err.message }));
-    }
-  }, []);
-
-  // Speak text via Chrome extension
-  const speak = useCallback((text: string) => {
-    if (!portRef.current) {
-      return Promise.reject(new Error('Speech extension not connected'));
-    }
-
-    return new Promise<void>((resolve, reject) => {
-      try {
-        portRef.current.postMessage({
-          type: 'SPEAK_TEXT',
-          text: text,
-          options: {
-            rate: 0.9,
-            pitch: 1,
-            volume: 1
-          }
-        });
-
-        // Set up one-time listener for completion
-        const handleCompletion = (message: any) => {
-          if (message.type === 'TTS_END') {
-            portRef.current.onMessage.removeListener(handleCompletion);
-            resolve();
-          } else if (message.type === 'TTS_ERROR') {
-            portRef.current.onMessage.removeListener(handleCompletion);
-            reject(new Error(message.error));
-          }
-        };
-
-        portRef.current.onMessage.addListener(handleCompletion);
-
-      } catch (err: any) {
-        reject(err);
+      if (e.error === 'aborted') {
+        // User stopped or restarted recognition
+        listening = false;
+        return;
       }
-    });
-  }, []);
 
-  // Stop speaking via Chrome extension
-  const stopSpeaking = useCallback(() => {
-    if (!portRef.current) return;
+      if (e.error === 'not-allowed') {
+        console.error('Microphone permission denied. Please allow microphone access.');
+        listening = false;
+        return;
+      }
 
-    try {
-      portRef.current.postMessage({ type: 'STOP_SPEAKING' });
-    } catch (err: any) {
-      setState(prev => ({ ...prev, error: err.message }));
-    }
-  }, []);
-
-  // Clear transcript
-  const clearTranscript = useCallback(() => {
-    setState(prev => ({ ...prev, transcript: '' }));
-  }, []);
-
-  // Initialize on mount
-  useEffect(() => {
-    initializeExtensionConnection();
-
-    return () => {
-      if (portRef.current) {
-        portRef.current.disconnect();
+      // For other errors, try to restart if still supposed to be listening
+      if (listening && e.error !== 'network') {
+        try {
+          recognition.stop();
+          setTimeout(() => {
+            if (listening) {
+              try {
+                recognition.start();
+              } catch (restartErr) {
+                console.error('Failed to restart recognition:', restartErr);
+                listening = false;
+              }
+            }
+          }, 100);
+        } catch (stopErr) {
+          // Ignore stop errors
+      }
       }
     };
-  }, [initializeExtensionConnection]);
 
-  return {
-    ...state,
-    startListening,
-    stopListening,
-    speak,
-    stopSpeaking,
-    clearTranscript,
-    initializeExtensionConnection
-  };
-};
+    recognition.onend = () => {
+      // Auto-restart if still supposed to be listening
+      if (listening) {
+        try {
+          recognition.start();
+        } catch (err) {
+          console.error('Auto-restart failed:', err);
+          listening = false;
+        }
+      }
+    };
+
+    try {
+      recognition.start();
+      listening = true;
+    } catch (err: any) {
+      // If already started, try stopping and restarting
+      if (err.message?.includes('already started')) {
+        try {
+          recognition.stop();
+          setTimeout(() => {
+            try {
+              recognition.start();
+              listening = true;
+            } catch (restartErr) {
+              console.error('Failed to restart after stop:', restartErr);
+            }
+          }, 100);
+        } catch (stopErr) {
+          console.error('Failed to stop before restart:', stopErr);
+        }
+      } else {
+        console.error('Failed to start SpeechRecognition:', err);
+      }
+    }
+  }
+
+  function stop() {
+    listening = false;
+    if (recognition) {
+      try {
+        recognition.onend = null; // Prevent auto-restart
+        recognition.stop();
+      } catch (err) {
+        // Ignore errors when stopping
+      }
+    }
+    currentTranscript = ''; // Reset transcript when stopping
+  }
+
+  function reset() {
+    // Completely reset the recognition instance
+    if (recognition) {
+      try {
+        recognition.stop();
+      } catch (e) {
+        // Ignore
+      }
+    }
+    recognition = null;
+    listening = false;
+    currentTranscript = '';
+  }
+
+  return { start, stop, reset, supported: true, transcript: currentTranscript };
+}

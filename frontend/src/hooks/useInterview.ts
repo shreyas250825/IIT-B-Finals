@@ -5,8 +5,9 @@ import { interviewApi } from '../services/api';
 // Type definitions
 interface InterviewProfile {
   role: string;
-  experience_level: string;
-  resume_text?: string;
+  interview_type: string;
+  round_type: string;
+  resume_data?: any;
 }
 
 interface AnswerSubmission {
