@@ -6,8 +6,14 @@ import json
 import hashlib
 import os
 import time
+import socket
 from typing import Any, Dict, List, Optional
 import requests
+
+try:
+    import dns.resolver
+except ImportError:
+    dns = None
 
 from app.config import get_settings
 
@@ -25,11 +31,18 @@ OPENROUTER_MODEL = (
     getattr(settings, "OPENROUTER_MODEL", None) or
     "amazon/nova-2-lite-v1:free"
 )
-OPENROUTER_BASE = (
-    os.getenv("OPENROUTER_BASE") or 
-    getattr(settings, "OPENROUTER_BASE", None) or
-    "https://api.openrouter.ai/v1/chat/completions"
-)
+OPENROUTER_BASE_URLS = [
+    os.getenv("OPENROUTER_BASE") or getattr(settings, "OPENROUTER_BASE", None) or "https://api.openrouter.ai/v1/chat/completions",
+    "https://openrouter.ai/api/v1/chat/completions",  # Alternative URL
+    "https://api.openrouter.ai/v1/chat/completions"   # Fallback to original
+]
+
+# Alternative DNS servers to try if primary DNS fails
+ALTERNATIVE_DNS_SERVERS = [
+    "8.8.8.8",  # Google DNS
+    "1.1.1.1",  # Cloudflare DNS
+    "208.67.222.222"  # OpenDNS
+]
 
 # Debug logging (only if key is missing)
 if not OPENROUTER_API_KEY:
@@ -49,70 +62,148 @@ def _get_cache_key(messages: List[Dict[str, str]]) -> str:
     return hashlib.sha256(messages_json.encode("utf-8")).hexdigest()
 
 
+def _resolve_dns_with_fallback(hostname: str) -> Optional[str]:
+    """
+    Try to resolve hostname using alternative DNS servers if primary DNS fails.
+    Returns the IP address or None if all attempts fail.
+    """
+    # First try standard resolution
+    try:
+        ip = socket.gethostbyname(hostname)
+        return ip
+    except socket.gaierror:
+        print(f"❌ Primary DNS resolution failed for {hostname}, trying alternatives...")
+
+    # Try alternative DNS servers
+    if dns:
+        for dns_server in ALTERNATIVE_DNS_SERVERS:
+            try:
+                resolver = dns.resolver.Resolver()
+                resolver.nameservers = [dns_server]
+                answers = resolver.resolve(hostname, 'A')
+                for answer in answers:
+                    ip = str(answer)
+                    print(f"✅ DNS resolution successful using {dns_server}: {hostname} -> {ip}")
+                    return ip
+            except Exception as e:
+                print(f"❌ DNS resolution failed with {dns_server}: {e}")
+                continue
+
+    # Fallback: try direct IP resolution if hostname is known
+    known_ips = {
+        "api.openrouter.ai": "104.18.32.207",  # Example IP, should be updated with actual IP
+        "openrouter.ai": "104.18.32.207"
+    }
+
+    if hostname in known_ips:
+        ip = known_ips[hostname]
+        print(f"⚠️ Using hardcoded IP for {hostname}: {ip}")
+        return ip
+
+    return None
+
+
 def call_openrouter(
-    messages: List[Dict[str, str]], 
-    temperature: float = 0.0, 
+    messages: List[Dict[str, str]],
+    temperature: float = 0.0,
     max_tokens: int = 600,
     timeout: int = 30
 ) -> str:
     """
     Call OpenRouter Nova-2-Lite and return raw assistant text.
-    
+    Tries multiple URLs in case of DNS/network issues.
+
     Args:
         messages: List of message dicts with "role" and "content"
         temperature: Sampling temperature (0.0 for deterministic)
         max_tokens: Maximum tokens to generate
         timeout: Request timeout in seconds
-    
+
     Returns:
         Raw text from assistant, or empty string on error
     """
     if not OPENROUTER_API_KEY:
         print("⚠️ OPENROUTER_API_KEY not configured")
         return ""
-    
+
     # Check cache
     cache_key = _get_cache_key(messages)
     now = time.time()
     cached = CACHE.get(cache_key)
     if cached and now - cached["ts"] < 3600:  # 1 hour TTL
         return cached["out"]
-    
+
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com/your-repo",  # Optional
         "X-Title": "AI Mock Interview Simulator"  # Optional
     }
-    
+
     payload = {
         "model": OPENROUTER_MODEL,
         "messages": messages,
         "temperature": temperature,
         "max_tokens": max_tokens,
     }
-    
-    try:
-        resp = requests.post(OPENROUTER_BASE, headers=headers, json=payload, timeout=timeout)
-        resp.raise_for_status()
-        data = resp.json()
-        
-        # Extract assistant message
-        if "choices" in data and len(data["choices"]) > 0:
-            text = data["choices"][0].get("message", {}).get("content", "").strip()
-            
-            # Cache the result
-            CACHE[cache_key] = {"out": text, "ts": now}
-            return text
-        else:
-            print(f"⚠️ Unexpected OpenRouter response: {data}")
-            return ""
-    except requests.exceptions.RequestException as e:
-        print(f"❌ OpenRouter API error: {e}")
-        return ""
-    except Exception as e:
-        print(f"❌ Unexpected error calling OpenRouter: {e}")
-        return ""
+
+    # Try each URL in sequence
+    for i, base_url in enumerate(OPENROUTER_BASE_URLS):
+        try:
+            print(f"🔄 Trying OpenRouter URL {i+1}/{len(OPENROUTER_BASE_URLS)}: {base_url}")
+
+            # Try the request
+            resp = requests.post(base_url, headers=headers, json=payload, timeout=timeout)
+            resp.raise_for_status()
+            data = resp.json()
+
+            # Extract assistant message
+            if "choices" in data and len(data["choices"]) > 0:
+                text = data["choices"][0].get("message", {}).get("content", "").strip()
+
+                # Cache the result
+                CACHE[cache_key] = {"out": text, "ts": now}
+                print(f"✅ OpenRouter call successful using URL: {base_url}")
+                return text
+            else:
+                print(f"⚠️ Unexpected OpenRouter response from {base_url}: {data}")
+                continue  # Try next URL
+        except requests.exceptions.RequestException as e:
+            error_msg = str(e)
+            if "NameResolutionError" in error_msg or "getaddrinfo failed" in error_msg:
+                print(f"❌ DNS/Network error with {base_url}: {error_msg}")
+                # Try DNS fallback for this hostname
+                try:
+                    from urllib.parse import urlparse
+                    parsed_url = urlparse(base_url)
+                    hostname = parsed_url.hostname
+                    if hostname:
+                        fallback_ip = _resolve_dns_with_fallback(hostname)
+                        if fallback_ip:
+                            # Construct URL with resolved IP
+                            fallback_url = base_url.replace(f"https://{hostname}", f"https://{fallback_ip}")
+                            print(f"🔄 Retrying with DNS fallback: {fallback_url}")
+                            resp = requests.post(fallback_url, headers=headers, json=payload, timeout=timeout)
+                            resp.raise_for_status()
+                            data = resp.json()
+
+                            if "choices" in data and len(data["choices"]) > 0:
+                                text = data["choices"][0].get("message", {}).get("content", "").strip()
+                                CACHE[cache_key] = {"out": text, "ts": now}
+                                print(f"✅ OpenRouter call successful using DNS fallback: {fallback_url}")
+                                return text
+                except Exception as dns_e:
+                    print(f"❌ DNS fallback failed: {dns_e}")
+            else:
+                print(f"❌ OpenRouter API error with {base_url}: {error_msg}")
+            continue  # Try next URL
+        except Exception as e:
+            print(f"❌ Unexpected error with {base_url}: {e}")
+            continue  # Try next URL
+
+    # All URLs failed
+    print(f"❌ All OpenRouter URLs failed. Last error: {error_msg if 'error_msg' in locals() else 'Unknown'}")
+    return ""
 
 
 def _parse_json_from_text(text: str) -> Optional[Any]:
@@ -446,10 +537,48 @@ Provide a concise, professional improved version."""
     return transcript  # Return original if improvement fails
 
 
+def generate_interviewer_response(question: str, candidate_answer: str, conversation_history: list = None) -> str:
+    """
+    Generate interviewer response using OpenRouter.
+    Returns a natural interviewer response based on the candidate's answer.
+    """
+    system_prompt = """You are a professional interviewer. Respond naturally as an interviewer would.
+Keep responses concise (1-2 sentences). Show engagement and guide the conversation.
+Do not repeat the candidate's answer. Focus on asking follow-ups or acknowledging their response."""
+
+    # Build conversation context
+    context = ""
+    if conversation_history:
+        context = "\nPrevious exchanges:\n" + "\n".join([f"Q: {q}\nA: {a}" for q, a in conversation_history[-2:]])
+
+    user_prompt = f"""Current Question: {question}
+Candidate's Answer: {candidate_answer}{context}
+
+Respond as the interviewer:"""
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt}
+    ]
+
+    text = call_openrouter(messages, temperature=0.3, max_tokens=100)
+
+    if text:
+        # Clean up the response
+        cleaned = text.strip()
+        # Remove any quotes if present
+        if cleaned.startswith('"') and cleaned.endswith('"'):
+            cleaned = cleaned[1:-1]
+        return cleaned[:200]  # Max 200 chars
+
+    # Fallback response
+    return "Thank you for your answer. Let's continue with the next question."
+
+
 def generate_final_report(session_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Summarize all evaluations and produce a final structured report.
-    
+
     Returns:
         {
             overall_summary: str,
@@ -465,7 +594,7 @@ def generate_final_report(session_data: Dict[str, Any]) -> Dict[str, Any]:
     questions = session_data.get("questions", [])
     evaluations = session_data.get("evaluations", [])
     answers = session_data.get("answers", [])
-    
+
     if not evaluations:
         return {
             "overall_summary": "No evaluations available.",
@@ -476,13 +605,13 @@ def generate_final_report(session_data: Dict[str, Any]) -> Dict[str, Any]:
             "improved_answers": [],
             "recommendations": []
         }
-    
+
     # Calculate averages
     avg_technical = sum(e.get("technical", 0) for e in evaluations) / len(evaluations)
     avg_communication = sum(e.get("communication", 0) for e in evaluations) / len(evaluations)
     avg_confidence = sum(e.get("confidence", 0) for e in evaluations) / len(evaluations)
     avg_relevance = sum(e.get("relevance", 0) for e in evaluations) / len(evaluations)
-    
+
     # Build session summary
     session_summary = []
     for i, (q, e, a) in enumerate(zip(questions[:len(evaluations)], evaluations, answers[:len(evaluations)])):
@@ -493,7 +622,7 @@ def generate_final_report(session_data: Dict[str, Any]) -> Dict[str, Any]:
             "confidence": e.get("confidence", 0),
             "notes": e.get("short_notes", "")
         })
-    
+
     system_prompt = """You are a report generator. Output ONLY JSON:
 {
  "overall_summary": "...",
@@ -506,7 +635,7 @@ def generate_final_report(session_data: Dict[str, Any]) -> Dict[str, Any]:
 }
 
 Generate concise insights."""
-    
+
     user_prompt = f"""SESSION DATA:
 {json.dumps(session_summary, indent=2)}
 
@@ -517,14 +646,14 @@ Average Scores:
 - Relevance: {avg_relevance:.1f}
 
 Generate a comprehensive report."""
-    
+
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt}
     ]
-    
+
     text = call_openrouter(messages, temperature=0.2, max_tokens=300)
-    
+
     if text:
         parsed = _parse_json_from_text(text)
         if isinstance(parsed, dict):
@@ -538,7 +667,7 @@ Generate a comprehensive report."""
                 "improved_answers": parsed.get("improved_answers", []),
                 "recommendations": parsed.get("recommendations", [])
             }
-    
+
     # Fallback report
     return {
         "overall_summary": f"Completed interview with average scores: Technical {avg_technical:.1f}, Communication {avg_communication:.1f}, Confidence {avg_confidence:.1f}.",

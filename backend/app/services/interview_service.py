@@ -10,7 +10,7 @@ from app.schemas.interview_schema import InterviewCreate
 from app.schemas.analysis_schema import AnswerSubmission, AnalysisResult
 from app.ai_engines.scoring_engine import ScoringEngine
 from app.ai_engines.behavioral_engine import BehavioralEngine
-from app.services.llm import llm_service
+from app.ai_engines import cloud_llm_engine
 from app.services.question_service import get_question_service
 
 class InterviewService:
@@ -207,7 +207,7 @@ class InterviewService:
                 conversation_history.append((resp.question, resp.answer_text))
 
             # Generate interviewer response
-            interviewer_response = llm_service.generate_interviewer_response(
+            interviewer_response = cloud_llm_engine.generate_interviewer_response(
                 question, answer, conversation_history
             )
 

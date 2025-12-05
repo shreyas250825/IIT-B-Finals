@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 import random
 from app.models.interview import Interview
 from app.constants import QUESTION_BANK, Roles, InterviewType
-from app.services.llm import llm_service
+from app.ai_engines.cloud_llm_engine import generate_questions
 
 # Global question service instance
 question_service = None
@@ -31,45 +31,34 @@ class QuestionService:
             return self._get_static_questions(role, interview_type, count)
 
     def _generate_dynamic_questions(self, role, interview_type, count: int):
-        """Generate questions using Mistral 7B"""
+        """Generate questions using cloud LLM engine with fallback"""
         role_name = role.value if hasattr(role, 'value') else str(role)
         interview_type_name = interview_type.value if hasattr(interview_type, 'value') else str(interview_type)
 
-        prompt = f"""Generate {count} high-quality interview questions for a {role_name} position in a {interview_type_name} interview.
-
-Requirements:
-- Questions should be relevant to {role_name} responsibilities
-- Mix of technical and behavioral questions appropriate for the role
-- Questions should be clear and professional
-- Each question should be on a new line
-- Focus on practical skills and experience
-
-Generate exactly {count} questions:"""
+        # Create a minimal profile for the LLM engine
+        profile = {
+            "role": role_name,
+            "experience_level": "mid",  # Default assumption
+            "skills": [],  # Could be enhanced with actual profile data
+            "industry": "technology"  # Default assumption
+        }
 
         try:
-            inputs = llm_service.tokenizer(prompt, return_tensors="pt").to(llm_service.device)
-            with llm_service.model.no_grad():
-                outputs = llm_service.model.generate(
-                    **inputs,
-                    max_new_tokens=500,
-                    temperature=0.7,
-                    do_sample=True,
-                    pad_token_id=llm_service.tokenizer.eos_token_id,
-                    eos_token_id=llm_service.tokenizer.eos_token_id
-                )
+            # Use cloud LLM engine with OpenRouter first, local fallback
+            questions_data = generate_questions(
+                profile=profile,
+                interview_type=interview_type_name,
+                persona="professional",
+                round_name="round1"
+            )
 
-            response = llm_service.tokenizer.decode(outputs[0], skip_special_tokens=True)
-            questions_text = response.split("Generate exactly")[1].strip()
-
-            # Parse questions
+            # Extract question texts from the structured response
             questions = []
-            for line in questions_text.split('\n'):
-                line = line.strip()
-                if line and not line.startswith(('Generate', 'Requirements', '-')):
-                    # Remove numbering if present
-                    line = line.lstrip('0123456789. ')
-                    if line:
-                        questions.append(line)
+            for q in questions_data:
+                if isinstance(q, dict) and "text" in q:
+                    questions.append(q["text"])
+                elif isinstance(q, str):
+                    questions.append(q)
 
             # Ensure we have the right number of questions
             if len(questions) >= count:
@@ -80,7 +69,7 @@ Generate exactly {count} questions:"""
                 return questions + static_questions
 
         except Exception as e:
-            print(f"LLM question generation failed: {e}")
+            print(f"Cloud LLM question generation failed: {e}")
             return self._get_static_questions(role, interview_type, count)
 
     def _get_static_questions(self, role, interview_type, count: int):
