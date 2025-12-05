@@ -349,11 +349,11 @@ cd frontend && npm run lint
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is under the GUVI HCL and IIT Bombay.
 
 ## Acknowledgments
 
 - Built with FastAPI and React
-- AI capabilities powered by OpenAI GPT models
+- AI capabilities powered by Hugging Face Transformer models
 - UI components styled with Tailwind CSS
 - Icons from Lucide React
