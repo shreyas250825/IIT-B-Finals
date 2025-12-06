@@ -5,16 +5,17 @@ from app.config import get_settings
 def setup_cors(app):
     """Setup CORS middleware"""
     settings = get_settings()
-    
+
+    # Parse FRONTEND_URL which can be comma-separated
+    configured_origins = [origin.strip() for origin in settings.FRONTEND_URL.split(",")]
+
     origins = [
         "http://localhost:3000",  # React dev server
         "http://127.0.0.1:3000",
-        "https://your-frontend.vercel.app",  # Your Vercel frontend
-        settings.FRONTEND_URL
-    ]
-    
-    # Remove None values
-    origins = [origin for origin in origins if origin]
+    ] + configured_origins
+
+    # Remove duplicates and None values
+    origins = list(set([origin for origin in origins if origin]))
     
     app.add_middleware(
         CORSMiddleware,

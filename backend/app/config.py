@@ -28,9 +28,9 @@ class Settings(BaseSettings):
     
     # Database
     DATABASE_URL: str = "sqlite:///./interview.db"
-    
-    # CORS
-    FRONTEND_URL: str = "http://localhost:3000"
+
+    # CORS - supports multiple origins for development and production
+    FRONTEND_URL: str = "http://localhost:3000,https://ai-mock-interview-simulator.vercel.app"
     
     # AI Models - OpenRouter
     OPENROUTER_API_KEY: Optional[str] = None
