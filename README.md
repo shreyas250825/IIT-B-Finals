@@ -38,7 +38,7 @@ A comprehensive platform for simulating mock interviews using AI technologies. T
 - **Security Hardening**: Input validation, rate limiting, and security audits
 - **Documentation**: User guides, API documentation, and deployment instructions
 
-*Last updated: Current development phase - Week 2 completion with Week 3 frontend integration in progress*
+*Last updated: Current development phase - Week 3 frontend integration completed with testing and deployment preparation in progress*
 
 ## Development Timeline
 
@@ -62,26 +62,34 @@ ai-mock-interview-simulator/
 │   ├── app/                          # Main application code
 │   │   ├── ai_engines/               # AI processing engines
 │   │   │   ├── behavioral_engine.py  # Behavioral analysis engine
+│   │   │   ├── cloud_llm_engine.py   # Cloud LLM integration
+│   │   │   ├── local_llm_engine.py   # Local LLM fallback
+│   │   │   ├── openrouter_engine.py  # OpenRouter API integration
 │   │   │   └── scoring_engine.py     # Technical scoring engine
 │   │   ├── middleware/               # FastAPI middleware
 │   │   │   ├── auth_middleware.py    # Authentication middleware
 │   │   │   └── cors.py               # CORS configuration
 │   │   ├── models/                   # SQLAlchemy models
+│   │   │   ├── __init__.py           # Models package init
 │   │   │   ├── interview.py          # Interview session model
 │   │   │   ├── report.py             # Analysis report model
 │   │   │   ├── response.py           # User response model
 │   │   │   ├── resume.py             # Resume data model
 │   │   │   └── user.py               # User profile model
 │   │   ├── routes/                   # API route handlers
+│   │   │   ├── __init__.py           # Routes package init
+│   │   │   ├── auth_routes.py        # Authentication routes
 │   │   │   ├── health_check.py       # Health check endpoint
 │   │   │   ├── interview_routes.py   # Interview management routes
 │   │   │   ├── report_routes.py      # Report generation routes
 │   │   │   └── resume_routes.py      # Resume processing routes
 │   │   ├── schemas/                  # Pydantic schemas
+│   │   │   ├── __init__.py           # Schemas package init
 │   │   │   ├── analysis_schema.py    # Analysis data schemas
 │   │   │   ├── interview_schema.py   # Interview data schemas
 │   │   │   └── user_schema.py        # User data schemas
 │   │   ├── services/                 # Business logic services
+│   │   │   ├── __init__.py           # Services package init
 │   │   │   ├── interview_service.py  # Interview orchestration
 │   │   │   ├── llm.py                # LLM integration service
 │   │   │   ├── question_service.py   # Question generation service
@@ -98,19 +106,59 @@ ai-mock-interview-simulator/
 │   │   └── main.py                   # FastAPI application entry point
 │   ├── create_tables.py              # Database table creation script
 │   ├── interview.db                  # SQLite database file
+│   ├── OPENROUTER_MIGRATION.md       # OpenRouter migration notes
 │   ├── pyproject.toml                # Python project configuration
 │   ├── requirements.txt              # Python dependencies
-│   └── logs/                         # Application logs directory
+│   ├── data/                         # Data storage
+│   │   ├── demos/                    # Demo data
+│   │   │   └── questions_fallback.json # Fallback questions
+│   │   └── uploads/                  # User uploaded files
+│   ├── inferred_models/              # Inferred AI models
+│   ├── logs/                         # Application logs directory
+│   └── static/                       # Static files
 ├── frontend/                         # React TypeScript Frontend
-│   ├── public/                       # Static assets
+│   ├── assets/                       # Static assets and images
+│   │   ├── cover.png                 # Cover image
+│   │   ├── hero-mockup.png           # Hero mockup
+│   │   ├── hero2.png                 # Secondary hero image
+│   │   ├── image1.png                # Image asset 1
+│   │   ├── image2.png                # Image asset 2
+│   │   ├── logo.png                  # Application logo
+│   │   ├── step1.png                 # Step illustration 1
+│   │   ├── step2.png                 # Step illustration 2
+│   │   ├── step3.png                 # Step illustration 3
+│   │   ├── step4.png                 # Step illustration 4
+│   │   ├── testimonial1.png          # Testimonial image 1
+│   │   ├── testimonial2.png          # Testimonial image 2
+│   │   ├── testimonial3.png          # Testimonial image 3
+│   │   ├── user1.png                 # User avatar
+│   │   ├── AI Avatars/               # AI avatar images
+│   │   │   ├── Bossy HR.png          # Bossy HR avatar
+│   │   │   ├── Female Interviewer.png # Female interviewer avatar
+│   │   │   └── Male Interviewer.png  # Male interviewer avatar
+│   │   └── logos/                    # Company logos
+│   │       ├── amazon.png            # Amazon logo
+│   │       ├── apple.png             # Apple logo
+│   │       ├── facebook.png          # Facebook logo
+│   │       ├── google.png            # Google logo
+│   │       └── microsoft.png         # Microsoft logo
+│   ├── public/                       # Public static assets
 │   │   └── vite.svg                  # Vite logo
 │   ├── src/                          # Source code
 │   │   ├── components/               # React components
+│   │   │   ├── about/                # About page components
+│   │   │   │   └── AboutPage.tsx      # About page component
+│   │   │   ├── auth/                 # Authentication components
+│   │   │   │   ├── SignInPage.tsx     # Sign in page
+│   │   │   │   └── SignUpPage.tsx     # Sign up page
 │   │   │   ├── common/               # Shared components
-│   │   │   │   ├── ErrorBoundary.tsx # Error boundary component
+│   │   │   │   ├── ErrorBoundary.tsx  # Error boundary component
 │   │   │   │   ├── Footer.tsx         # Footer component
 │   │   │   │   ├── LoadingSpinner.tsx # Loading spinner component
-│   │   │   │   └── Navbar.tsx         # Navigation bar component
+│   │   │   │   ├── Navbar.tsx         # Navigation bar component
+│   │   │   │   └── ProtectedRoute.tsx # Protected route wrapper
+│   │   │   ├── dashboard/            # Dashboard components
+│   │   │   │   └── Dashboard.tsx      # Main dashboard
 │   │   │   ├── feedback/             # Feedback-related components
 │   │   │   │   ├── BehavioralInsights.tsx # Behavioral analysis display
 │   │   │   │   ├── FeedbackDashboard.tsx # Main feedback dashboard
@@ -121,6 +169,7 @@ ai-mock-interview-simulator/
 │   │   │   ├── interview/            # Interview interface components
 │   │   │   │   ├── AIAvatar.tsx       # AI avatar component
 │   │   │   │   ├── ControlsPanel.tsx  # Interview controls
+│   │   │   │   ├── HumanAvatar.tsx    # Human avatar component
 │   │   │   │   ├── InterviewInterface.tsx # Main interview interface
 │   │   │   │   ├── LiveMetrics.tsx    # Real-time metrics display
 │   │   │   │   ├── QuestionDisplay.tsx # Question display component
@@ -130,12 +179,16 @@ ai-mock-interview-simulator/
 │   │   │   ├── layout/               # Layout components
 │   │   │   │   └── Layout.tsx         # Main layout wrapper
 │   │   │   ├── profile/              # Profile setup components
+│   │   │   │   ├── InterviewConfig.tsx # Interview configuration
+│   │   │   │   ├── InterviewSetup.tsx # Interview setup
 │   │   │   │   ├── ManualSetup.tsx    # Manual profile setup
 │   │   │   │   ├── ProfileSetup.tsx   # Profile setup interface
+│   │   │   │   ├── ResumeReview.tsx   # Resume review component
 │   │   │   │   ├── ResumeUpload.tsx   # Resume upload component
 │   │   │   │   └── RoleSelector.tsx   # Role selection component
 │   │   │   └── reports/              # Report components
 │   │   │       ├── ComparisonView.tsx # Report comparison view
+│   │   │       ├── Report.tsx         # Individual report component
 │   │   │       ├── ReportList.tsx     # Report list component
 │   │   │       └── ReportViewer.tsx   # Report viewer component
 │   │   ├── hooks/                    # Custom React hooks
@@ -153,24 +206,42 @@ ai-mock-interview-simulator/
 │   │   │   ├── animations.css        # Animation styles
 │   │   │   ├── components.css        # Component-specific styles
 │   │   │   └── globals.css           # Global styles
+│   │   ├── types/                    # TypeScript type definitions
 │   │   ├── utils/                    # Utility functions
 │   │   │   ├── constants.ts          # Application constants
 │   │   │   ├── formatters.ts         # Data formatting utilities
 │   │   │   └── helpers.ts            # General helper functions
+│   │   ├── views/                    # View components
 │   │   ├── App.tsx                   # Main React application component
-│   │   └── main.tsx                  # React application entry point
+│   │   ├── main.tsx                  # React application entry point
+│   │   ├── style.css                 # Global styles
+│   │   └── typescript.svg            # TypeScript logo
 │   ├── index.html                    # HTML template
 │   ├── package.json                  # Node.js dependencies and scripts
+│   ├── package-lock.json             # NPM lock file
 │   ├── postcss.config.js             # PostCSS configuration
 │   ├── tailwind.config.js            # Tailwind CSS configuration
 │   ├── tsconfig.json                 # TypeScript configuration
 │   ├── vite.config.ts                # Vite build configuration
-│   └── TODO.md                       # Frontend development tasks
+│   ├── TODO.md                       # Frontend development tasks
+│   └── .gitignore                    # Git ignore file
+├── chrome-extension/                 # Chrome extension for video/camera access
+│   ├── manifest.json                 # Extension manifest
+│   ├── background.js                 # Background script
+│   ├── injected.js                   # Content script
+│   ├── popup.js                      # Popup script
+│   └── popup.html                    # Popup HTML
+├── scripts/                          # Utility scripts
+│   ├── test_openrouter.py            # OpenRouter testing script
+│   └── verify_openrouter_key.py      # API key verification script
 ├── docker-compose.dev.yml            # Development Docker Compose
 ├── docker-compose.prod.yml           # Production Docker Compose
 ├── Makefile                          # Build automation scripts
+├── README.md                         # This file
+├── start.md                          # Quick start guide
 ├── TODO.md                           # Project-wide development tasks
-└── README.md                         # This file
+├── test_imports.py                   # Import testing script
+└── .gitignore                        # Git ignore file
 ```
 
 ## File Details
