@@ -10,7 +10,6 @@ import {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
   const [userProfile, setUserProfile] = useState<any>(null);
   const [interviewHistory, setInterviewHistory] = useState<any[]>([]);
 

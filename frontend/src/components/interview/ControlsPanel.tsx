@@ -1,13 +1,12 @@
 // src/components/interview/ControlsPanel.tsx
 import React from 'react';
-import { Mic, Square, Play, SkipForward, CheckCircle } from 'lucide-react';
+import { Mic, Square, SkipForward, CheckCircle } from 'lucide-react';
 
 interface ControlsPanelProps {
   stage: string;
   onStartAnswering: () => void;
   onSubmitAnswer: () => void;
   onNextQuestion: () => void;
-  isAnswering: boolean;
   hasAnswer: boolean;
 }
 
@@ -16,7 +15,6 @@ const ControlsPanel: React.FC<ControlsPanelProps> = ({
   onStartAnswering,
   onSubmitAnswer,
   onNextQuestion,
-  isAnswering,
   hasAnswer
 }) => {
   return (

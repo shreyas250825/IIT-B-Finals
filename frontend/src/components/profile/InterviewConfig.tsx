@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Briefcase, Target, Brain, Users, FileText, PlayCircle, ChevronRight } from 'lucide-react';
+import { Briefcase, ChevronRight } from 'lucide-react';
 import InterviewSetup from './InterviewSetup';
 
 interface InterviewConfigProps {
@@ -30,37 +30,6 @@ const InterviewConfig: React.FC<InterviewConfigProps> = ({ parsedData, onComplet
     'QA Engineer',
     'System Architect',
     'Tech Lead'
-  ];
-
-  const interviewTypes = [
-    { 
-      id: 'technical', 
-      name: 'Technical', 
-      description: 'Focus on coding, algorithms, and technical skills',
-      icon: Brain,
-      gradient: 'from-sky-400 to-cyan-400'
-    },
-    { 
-      id: 'projects', 
-      name: 'Projects', 
-      description: 'Discuss your past projects and implementations',
-      icon: FileText,
-      gradient: 'from-purple-500 to-pink-500'
-    },
-    { 
-      id: 'mixed', 
-      name: 'Mixed', 
-      description: 'Combination of technical and behavioral questions',
-      icon: Target,
-      gradient: 'from-orange-500 to-yellow-500'
-    },
-    { 
-      id: 'hr', 
-      name: 'HR/Behavioral', 
-      description: 'Focus on soft skills, culture fit, and experience',
-      icon: Users,
-      gradient: 'from-green-400 to-emerald-500'
-    }
   ];
 
   const handleRoleSelect = (role: string) => {
@@ -209,7 +178,6 @@ const InterviewConfig: React.FC<InterviewConfigProps> = ({ parsedData, onComplet
         </>
       ) : (
         <InterviewSetup
-          parsedData={parsedData}
           selectedRole={customRole.trim() || selectedRole}
           onStart={handleStartInterview}
         />

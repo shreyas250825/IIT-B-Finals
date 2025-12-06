@@ -1,6 +1,6 @@
 // src/components/feedback/TechnicalAnalysis.tsx
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Star, MessageCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, MessageCircle } from 'lucide-react';
 
 interface TechnicalAnalysisProps {
   questions: any[];

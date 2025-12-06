@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Briefcase, Code, GraduationCap, ChevronRight, X } from 'lucide-react';
+import { CheckCircle, Briefcase, Code, GraduationCap, ChevronRight } from 'lucide-react';
 
 interface ResumeReviewProps {
   parsedData: {

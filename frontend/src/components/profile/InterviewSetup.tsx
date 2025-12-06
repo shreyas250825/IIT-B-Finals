@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Briefcase, Brain, Users, User, UserCheck, PlayCircle, ChevronRight } from 'lucide-react';
 
 interface InterviewSetupProps {
-  parsedData: any;
   selectedRole: string;
   onStart: (config: {
     role: string;
@@ -12,7 +11,7 @@ interface InterviewSetupProps {
   }) => void;
 }
 
-const InterviewSetup: React.FC<InterviewSetupProps> = ({ parsedData, selectedRole, onStart }) => {
+const InterviewSetup: React.FC<InterviewSetupProps> = ({ selectedRole, onStart }) => {
   const navigate = useNavigate();
   const [interviewType, setInterviewType] = useState<string>('');
   const [persona, setPersona] = useState<string>('');

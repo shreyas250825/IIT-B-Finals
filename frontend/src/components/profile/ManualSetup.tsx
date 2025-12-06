@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Briefcase, ChevronDown } from 'lucide-react';
+import { Briefcase } from 'lucide-react';
 import InterviewSetup from './InterviewSetup';
 
 const ManualSetup: React.FC = () => {
@@ -116,7 +116,6 @@ const ManualSetup: React.FC = () => {
         </>
       ) : (
         <InterviewSetup
-          parsedData={{}}
           selectedRole={customRole.trim() || selectedRole}
           onStart={handleStartInterview}
         />
