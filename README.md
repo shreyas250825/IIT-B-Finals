@@ -334,6 +334,7 @@ The application is deployed and available at:
 
 - **Frontend**: https://iit-b-finals-fcgr.vercel.app/
 - **Backend API**: https://iit-b-finals.onrender.com/
+- **For Backend API checks**: https://iit-b-finals.onrender.com/
 
 ### Usage Instructions
 
