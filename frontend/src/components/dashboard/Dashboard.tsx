@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../layout/Layout';
-import { 
-  Video, BarChart3, Brain, Clock, Target, TrendingUp, Award,
+import {
+  Video, Brain, Clock, Target, TrendingUp,
   Calendar, PlayCircle, BookOpen, Trophy, Zap, CheckCircle,
-  Star, ArrowRight, Plus, History, Settings, Bell, User,
+  Star, ArrowRight, Plus, History,
   ChevronRight, Activity, FileText
 } from 'lucide-react';
 
