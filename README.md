@@ -328,6 +328,19 @@ ai-mock-interview-simulator/
 - **Orchestration**: Docker Compose for development/production
 - **Build Automation**: Makefile for common tasks
 
+## Live Application
+
+The application is deployed and available at:
+
+- **Frontend**: https://iit-b-finals-fcgr.vercel.app/
+- **Backend API**: https://iit-b-finals.onrender.com/
+
+### Usage Instructions
+
+1. **Start with Render**: Begin your interview sessions using the Render deployment for optimal performance
+2. **Fallback to Vercel**: If you experience server resets or downtime on Render, switch to the Vercel deployment simultaneously
+3. **Seamless Experience**: Both deployments provide the same functionality and data persistence
+
 ## Setup and Installation
 
 ### Prerequisites
