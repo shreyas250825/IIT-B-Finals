@@ -1,7 +1,7 @@
 // src/components/feedback/FeedbackDashboard.tsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { interviewApi } from '../../services/api';
+import { apiService } from '../../services/api';
 import RadarChart from './RadarChart';
 import BehavioralInsights from './BehavioralInsights';
 import TechnicalAnalysis from './TechnicalAnalysis';
@@ -35,7 +35,7 @@ const FeedbackDashboard: React.FC = () => {
       }
 
       try {
-        const reportData = await interviewApi.getReport(sessionId);
+        const reportData = await apiService.getReport(sessionId);
         setReport(reportData);
       } catch (err: any) {
         setError(err.response?.data?.detail || 'Failed to load report');
