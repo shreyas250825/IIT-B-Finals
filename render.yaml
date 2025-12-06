@@ -16,7 +16,7 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
       - key: FRONTEND_URL
-        value: https://ai-mock-interview-simulator.vercel.app
+        value: https://iit-b-finals-fcgr.vercel.app
 
 databases:
   - name: interview-db
