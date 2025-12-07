@@ -16,7 +16,7 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
       - key: FRONTEND_URL
-        value: https://iit-b-finals-fcgr.vercel.app
+        value: https://intervize.vercel.app
 
 databases:
   - name: interview-db

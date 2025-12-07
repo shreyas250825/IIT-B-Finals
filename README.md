@@ -332,7 +332,7 @@ ai-mock-interview-simulator/
 
 The application is deployed and available at:
 
-- **Frontend**: https://iit-b-finals-fcgr.vercel.app/
+- **Frontend**: https://intervize.vercel.app/
 - **Backend API**: https://iit-b-finals.onrender.com/
 - **For Backend API checks**: https://iit-b-finals.onrender.com/docs
 
