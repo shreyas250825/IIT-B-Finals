@@ -3,7 +3,7 @@ import { Upload, FileText, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ResumeReview from './ResumeReview';
-import { API_BASE_URL } from '../../services/api';
+import { API_BASE_URL } from '../../services/api';// Adjust the import path as necessary
 
 const ResumeUpload: React.FC = () => {
   const navigate = useNavigate();
