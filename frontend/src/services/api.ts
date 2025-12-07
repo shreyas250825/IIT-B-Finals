@@ -1,6 +1,14 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://iit-b-finals.onrender.com';
+// For development, use localhost:8000, for production use Render URL
+const getApiUrl = () => {
+  if (import.meta.env.DEV) {
+    return 'http://localhost:8000';
+  }
+  return 'https://iit-b-finals.onrender.com';
+};
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || getApiUrl();
 
 const api = axios.create({
   baseURL: API_BASE_URL,
