@@ -12,6 +12,8 @@ def setup_cors(app):
     origins = [
         "http://localhost:3000",  # React dev server
         "http://127.0.0.1:3000",
+        "http://localhost:3001",  # React dev server (alternative port)
+        "http://127.0.0.1:3001",
     ] + configured_origins
 
     # Remove duplicates and None values

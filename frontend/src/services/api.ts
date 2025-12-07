@@ -17,6 +17,8 @@ const api = axios.create({
   },
 });
 
+export { API_BASE_URL };
+
 // Existing types and clients (kept for compatibility with other screens)
 export interface InterviewProfile {
   role: string;
