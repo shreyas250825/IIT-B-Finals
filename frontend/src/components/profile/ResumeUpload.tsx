@@ -4,7 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ResumeReview from './ResumeReview';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://iit-b-finals.onrender.com';
+// For development, use localhost:8000, for production use Render URL
+const getApiUrl = () => {
+  if (import.meta.env.DEV) {
+    return 'http://localhost:8000';
+  }
+  return 'https://iit-b-finals.onrender.com';
+};
 
 const ResumeUpload: React.FC = () => {
   const navigate = useNavigate();
@@ -40,7 +46,7 @@ const ResumeUpload: React.FC = () => {
       formData.append('file', file);
 
       // Upload to backend using new parse endpoint
-      const response = await fetch(`${API_BASE_URL}/api/resume/parse`, {
+      const response = await fetch(`${getApiUrl()}/api/resume/parse`, {
         method: 'POST',
         body: formData,
       });
