@@ -69,7 +69,7 @@ docker-compose -f docker-compose.prod.yml up --build
 ```
 
 ## Accessing the Application
-- Frontend: http://localhost:5173 (Vite dev server)
+- Frontend: http://localhost:3000 (Vite dev server)
 - Backend API: http://localhost:8000
 - API Documentation: http://localhost:8000/docs (Swagger UI)
 

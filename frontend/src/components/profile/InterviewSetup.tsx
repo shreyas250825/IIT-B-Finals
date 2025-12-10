@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Briefcase, Brain, Users, User, UserCheck, PlayCircle, ChevronRight } from 'lucide-react';
+import { Briefcase, Brain, Users, User, UserCheck, ChevronRight, PlayCircle } from 'lucide-react';
 
 interface InterviewSetupProps {
+  parsedData: any;
   selectedRole: string;
   onStart: (config: {
     role: string;

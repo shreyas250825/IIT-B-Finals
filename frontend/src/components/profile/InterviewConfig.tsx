@@ -178,6 +178,7 @@ const InterviewConfig: React.FC<InterviewConfigProps> = ({ parsedData, onComplet
         </>
       ) : (
         <InterviewSetup
+          parsedData={parsedData}
           selectedRole={customRole.trim() || selectedRole}
           onStart={handleStartInterview}
         />

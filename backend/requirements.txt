@@ -24,4 +24,3 @@ python-magic==0.4.27
 numpy>=2.0.0
 pydub==0.25.1
 requests>=2.31.0
-dnspython>=2.0.0

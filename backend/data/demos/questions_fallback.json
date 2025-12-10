@@ -1,32 +1,66 @@
 [
   {
     "id": "q1",
-    "question": "Tell me about yourself and your background.",
-    "category": "behavioral",
-    "difficulty": "easy"
+    "text": "Tell me about yourself and your background.",
+    "followups": "Can you elaborate?",
+    "type": "mixed",
+    "difficulty": "easy",
+    "expected_keywords": ["experience", "background", "skills"],
+    "expected_length": "medium"
   },
   {
     "id": "q2",
-    "question": "What are your strengths and weaknesses?",
-    "category": "behavioral",
-    "difficulty": "medium"
+    "text": "Describe a challenging project you worked on.",
+    "followups": "What was the outcome?",
+    "type": "technical",
+    "difficulty": "medium",
+    "expected_keywords": ["project", "challenge", "solution", "technologies"],
+    "expected_length": "long"
   },
   {
     "id": "q3",
-    "question": "Why do you want to work for this company?",
-    "category": "behavioral",
-    "difficulty": "medium"
+    "text": "How do you handle tight deadlines and pressure?",
+    "followups": "Give an example.",
+    "type": "behavioral",
+    "difficulty": "medium",
+    "expected_keywords": ["time management", "stress", "prioritization"],
+    "expected_length": "medium"
   },
   {
     "id": "q4",
-    "question": "Describe a challenging project you worked on and how you overcame difficulties.",
-    "category": "technical",
-    "difficulty": "hard"
+    "text": "What technical skills do you bring to this position?",
+    "followups": "Which is your strongest?",
+    "type": "technical",
+    "difficulty": "medium",
+    "expected_keywords": ["skills", "technologies", "expertise"],
+    "expected_length": "medium"
   },
   {
     "id": "q5",
-    "question": "Where do you see yourself in 5 years?",
-    "category": "behavioral",
-    "difficulty": "medium"
+    "text": "Describe a time when you had to learn a new technology quickly.",
+    "followups": "How did you approach it?",
+    "type": "behavioral",
+    "difficulty": "medium",
+    "expected_keywords": ["learning", "adaptation", "technology"],
+    "expected_length": "medium"
+  },
+  {
+    "id": "q6",
+    "text": "How do you approach problem-solving in your work?",
+    "followups": "Walk me through an example.",
+    "type": "technical",
+    "difficulty": "hard",
+    "expected_keywords": ["problem-solving", "methodology", "analysis"],
+    "expected_length": "long"
+  },
+  {
+    "id": "q7",
+    "text": "Why are you interested in this position?",
+    "followups": "What excites you most?",
+    "type": "behavioral",
+    "difficulty": "easy",
+    "expected_keywords": ["interest", "motivation", "goals"],
+    "expected_length": "medium"
   }
 ]
+

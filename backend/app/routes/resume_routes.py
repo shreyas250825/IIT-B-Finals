@@ -238,8 +238,8 @@ async def parse_resume(
         if file_ext not in allowed_types:
             raise HTTPException(status_code=400, detail="File type not supported. Please upload PDF, DOCX, or TXT.")
         
-        # Save file to temp directory (use /tmp for production deployments)
-        upload_dir = "/tmp/uploads" if os.environ.get('RENDER') else "data/uploads"
+        # Save file to temp directory
+        upload_dir = "data/uploads"
         os.makedirs(upload_dir, exist_ok=True)
         file_path = os.path.join(upload_dir, file.filename)
         
@@ -292,8 +292,8 @@ async def upload_resume(
         if file_ext not in allowed_types:
             raise HTTPException(status_code=400, detail="File type not supported. Please upload PDF, DOCX, or TXT.")
         
-        # Save file to temp directory (use /tmp for production deployments)
-        upload_dir = "/tmp/uploads" if os.environ.get('RENDER') else "data/uploads"
+        # Save file to temp directory
+        upload_dir = "data/uploads"
         os.makedirs(upload_dir, exist_ok=True)
         file_path = os.path.join(upload_dir, file.filename)
         

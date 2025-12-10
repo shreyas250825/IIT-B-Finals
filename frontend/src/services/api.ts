@@ -1,14 +1,6 @@
 import axios from 'axios';
 
-// For development, use localhost:8000, for production use Render URL
-const getApiUrl = () => {
-  if (import.meta.env.DEV) {
-    return 'http://localhost:8000';
-  }
-  return 'https://iit-b-finals.onrender.com';
-};
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || getApiUrl();
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -16,8 +8,6 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-export { API_BASE_URL };
 
 // Existing types and clients (kept for compatibility with other screens)
 export interface InterviewProfile {

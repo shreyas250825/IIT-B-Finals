@@ -14,46 +14,6 @@ A comprehensive platform for simulating mock interviews using AI technologies. T
 - **Video Recording**: Session recording for review and analysis
 - **Multi-modal Interface**: Voice and text input options
 
-## Project Status
-
-**Current Completion: 70%**
-
-### ✅ Completed Components
-- **Backend Infrastructure**: FastAPI server with SQLAlchemy ORM, database models, and core API endpoints
-- **AI Integration**: OpenRouter LLM integration with fallback to local models, question generation service
-- **Frontend Foundation**: React TypeScript setup with core components and routing
-- **Database Schema**: Complete data models for users, interviews, responses, reports, and resumes
-- **Authentication System**: JWT-based middleware and user management
-- **API Documentation**: Comprehensive endpoint documentation with OpenAPI/Swagger
-
-### 🔄 In Progress
-- **Frontend UI Completion**: Finalizing interview interface and feedback dashboard components
-- **Real-time Features**: WebSocket integration for live interview sessions
-- **Video Processing**: Camera access and video recording capabilities
-- **Testing Suite**: Unit and integration tests for backend services
-
-### 📋 Remaining Tasks
-- **Production Deployment**: Docker containerization and production environment setup
-- **Performance Optimization**: Caching, database indexing, and API response optimization
-- **Security Hardening**: Input validation, rate limiting, and security audits
-- **Documentation**: User guides, API documentation, and deployment instructions
-
-*Last updated: Current development phase - Week 3 frontend integration completed with testing and deployment preparation in progress*
-
-## Development Timeline
-
-### Week 1: Setup and Architecture Finalization
-In Week 1, we will finalize the project architecture and select the appropriate technology stack for backend, frontend, and AI model components. We will define comprehensive system workflow diagrams including data flow, API flow, and AI inference flow. The GitHub repository will be set up with a clear folder structure, complete README.md documentation, and all necessary environment setup files such as requirements.txt, environment.yml, or package.json. Backend scaffolding will be initialized using FastAPI/Flask/Node.js as recommended. Basic database schema and connections will be created for both SQL and NoSQL options. A basic UI wireframe or landing page will be initialized to establish the visual foundation.
-Deliverable: Initial architecture document + repository setup submitted for mentor review.
-
-### Week 2: Core AI Model Integration & API Development
-Week 2 focuses on implementing the main AI logic that forms the heart of the solution. We will integrate AI model(s) specifically designed for the chosen problem statement, such as Quiz Generator, Mentor Scoring, or AI Mock Interview systems. API endpoints will be built for all core functions including AI inference, data submission, scoring, and evaluation processes. The end-to-end flow from frontend through backend to AI pipeline will be ensured and validated. Internal testing will begin using mock data to verify system functionality.
-Deliverable: Functional backend + AI inference pipeline with documented API calls (README/Postman collection).
-
-### Week 3: Frontend and Workflow Integration
-During Week 3, we will develop the complete frontend interface and establish seamless connections to all backend APIs. User workflows will be fully implemented, including login processes, quiz participation, video upload capabilities, and interview simulation features. Real-time and asynchronous communication will be integrated using WebSocket connections and audio streaming technologies. AI output visualization will be validated to ensure results, scores, and feedback are displayed clearly and effectively. The system will be made fully responsive with comprehensive error handling implemented throughout.
-Deliverable: Fully connected frontend-backend prototype showing end-to-end flow.
-
 ## Project Structure
 
 ```
@@ -62,34 +22,26 @@ ai-mock-interview-simulator/
 │   ├── app/                          # Main application code
 │   │   ├── ai_engines/               # AI processing engines
 │   │   │   ├── behavioral_engine.py  # Behavioral analysis engine
-│   │   │   ├── cloud_llm_engine.py   # Cloud LLM integration
-│   │   │   ├── local_llm_engine.py   # Local LLM fallback
-│   │   │   ├── openrouter_engine.py  # OpenRouter API integration
 │   │   │   └── scoring_engine.py     # Technical scoring engine
 │   │   ├── middleware/               # FastAPI middleware
 │   │   │   ├── auth_middleware.py    # Authentication middleware
 │   │   │   └── cors.py               # CORS configuration
 │   │   ├── models/                   # SQLAlchemy models
-│   │   │   ├── __init__.py           # Models package init
 │   │   │   ├── interview.py          # Interview session model
 │   │   │   ├── report.py             # Analysis report model
 │   │   │   ├── response.py           # User response model
 │   │   │   ├── resume.py             # Resume data model
 │   │   │   └── user.py               # User profile model
 │   │   ├── routes/                   # API route handlers
-│   │   │   ├── __init__.py           # Routes package init
-│   │   │   ├── auth_routes.py        # Authentication routes
 │   │   │   ├── health_check.py       # Health check endpoint
 │   │   │   ├── interview_routes.py   # Interview management routes
 │   │   │   ├── report_routes.py      # Report generation routes
 │   │   │   └── resume_routes.py      # Resume processing routes
 │   │   ├── schemas/                  # Pydantic schemas
-│   │   │   ├── __init__.py           # Schemas package init
 │   │   │   ├── analysis_schema.py    # Analysis data schemas
 │   │   │   ├── interview_schema.py   # Interview data schemas
 │   │   │   └── user_schema.py        # User data schemas
 │   │   ├── services/                 # Business logic services
-│   │   │   ├── __init__.py           # Services package init
 │   │   │   ├── interview_service.py  # Interview orchestration
 │   │   │   ├── llm.py                # LLM integration service
 │   │   │   ├── question_service.py   # Question generation service
@@ -106,59 +58,19 @@ ai-mock-interview-simulator/
 │   │   └── main.py                   # FastAPI application entry point
 │   ├── create_tables.py              # Database table creation script
 │   ├── interview.db                  # SQLite database file
-│   ├── OPENROUTER_MIGRATION.md       # OpenRouter migration notes
 │   ├── pyproject.toml                # Python project configuration
 │   ├── requirements.txt              # Python dependencies
-│   ├── data/                         # Data storage
-│   │   ├── demos/                    # Demo data
-│   │   │   └── questions_fallback.json # Fallback questions
-│   │   └── uploads/                  # User uploaded files
-│   ├── inferred_models/              # Inferred AI models
-│   ├── logs/                         # Application logs directory
-│   └── static/                       # Static files
+│   └── logs/                         # Application logs directory
 ├── frontend/                         # React TypeScript Frontend
-│   ├── assets/                       # Static assets and images
-│   │   ├── cover.png                 # Cover image
-│   │   ├── hero-mockup.png           # Hero mockup
-│   │   ├── hero2.png                 # Secondary hero image
-│   │   ├── image1.png                # Image asset 1
-│   │   ├── image2.png                # Image asset 2
-│   │   ├── logo.png                  # Application logo
-│   │   ├── step1.png                 # Step illustration 1
-│   │   ├── step2.png                 # Step illustration 2
-│   │   ├── step3.png                 # Step illustration 3
-│   │   ├── step4.png                 # Step illustration 4
-│   │   ├── testimonial1.png          # Testimonial image 1
-│   │   ├── testimonial2.png          # Testimonial image 2
-│   │   ├── testimonial3.png          # Testimonial image 3
-│   │   ├── user1.png                 # User avatar
-│   │   ├── AI Avatars/               # AI avatar images
-│   │   │   ├── Bossy HR.png          # Bossy HR avatar
-│   │   │   ├── Female Interviewer.png # Female interviewer avatar
-│   │   │   └── Male Interviewer.png  # Male interviewer avatar
-│   │   └── logos/                    # Company logos
-│   │       ├── amazon.png            # Amazon logo
-│   │       ├── apple.png             # Apple logo
-│   │       ├── facebook.png          # Facebook logo
-│   │       ├── google.png            # Google logo
-│   │       └── microsoft.png         # Microsoft logo
-│   ├── public/                       # Public static assets
+│   ├── public/                       # Static assets
 │   │   └── vite.svg                  # Vite logo
 │   ├── src/                          # Source code
 │   │   ├── components/               # React components
-│   │   │   ├── about/                # About page components
-│   │   │   │   └── AboutPage.tsx      # About page component
-│   │   │   ├── auth/                 # Authentication components
-│   │   │   │   ├── SignInPage.tsx     # Sign in page
-│   │   │   │   └── SignUpPage.tsx     # Sign up page
 │   │   │   ├── common/               # Shared components
-│   │   │   │   ├── ErrorBoundary.tsx  # Error boundary component
+│   │   │   │   ├── ErrorBoundary.tsx # Error boundary component
 │   │   │   │   ├── Footer.tsx         # Footer component
 │   │   │   │   ├── LoadingSpinner.tsx # Loading spinner component
-│   │   │   │   ├── Navbar.tsx         # Navigation bar component
-│   │   │   │   └── ProtectedRoute.tsx # Protected route wrapper
-│   │   │   ├── dashboard/            # Dashboard components
-│   │   │   │   └── Dashboard.tsx      # Main dashboard
+│   │   │   │   └── Navbar.tsx         # Navigation bar component
 │   │   │   ├── feedback/             # Feedback-related components
 │   │   │   │   ├── BehavioralInsights.tsx # Behavioral analysis display
 │   │   │   │   ├── FeedbackDashboard.tsx # Main feedback dashboard
@@ -169,7 +81,6 @@ ai-mock-interview-simulator/
 │   │   │   ├── interview/            # Interview interface components
 │   │   │   │   ├── AIAvatar.tsx       # AI avatar component
 │   │   │   │   ├── ControlsPanel.tsx  # Interview controls
-│   │   │   │   ├── HumanAvatar.tsx    # Human avatar component
 │   │   │   │   ├── InterviewInterface.tsx # Main interview interface
 │   │   │   │   ├── LiveMetrics.tsx    # Real-time metrics display
 │   │   │   │   ├── QuestionDisplay.tsx # Question display component
@@ -179,16 +90,12 @@ ai-mock-interview-simulator/
 │   │   │   ├── layout/               # Layout components
 │   │   │   │   └── Layout.tsx         # Main layout wrapper
 │   │   │   ├── profile/              # Profile setup components
-│   │   │   │   ├── InterviewConfig.tsx # Interview configuration
-│   │   │   │   ├── InterviewSetup.tsx # Interview setup
 │   │   │   │   ├── ManualSetup.tsx    # Manual profile setup
 │   │   │   │   ├── ProfileSetup.tsx   # Profile setup interface
-│   │   │   │   ├── ResumeReview.tsx   # Resume review component
 │   │   │   │   ├── ResumeUpload.tsx   # Resume upload component
 │   │   │   │   └── RoleSelector.tsx   # Role selection component
 │   │   │   └── reports/              # Report components
 │   │   │       ├── ComparisonView.tsx # Report comparison view
-│   │   │       ├── Report.tsx         # Individual report component
 │   │   │       ├── ReportList.tsx     # Report list component
 │   │   │       └── ReportViewer.tsx   # Report viewer component
 │   │   ├── hooks/                    # Custom React hooks
@@ -206,42 +113,24 @@ ai-mock-interview-simulator/
 │   │   │   ├── animations.css        # Animation styles
 │   │   │   ├── components.css        # Component-specific styles
 │   │   │   └── globals.css           # Global styles
-│   │   ├── types/                    # TypeScript type definitions
 │   │   ├── utils/                    # Utility functions
 │   │   │   ├── constants.ts          # Application constants
 │   │   │   ├── formatters.ts         # Data formatting utilities
 │   │   │   └── helpers.ts            # General helper functions
-│   │   ├── views/                    # View components
 │   │   ├── App.tsx                   # Main React application component
-│   │   ├── main.tsx                  # React application entry point
-│   │   ├── style.css                 # Global styles
-│   │   └── typescript.svg            # TypeScript logo
+│   │   └── main.tsx                  # React application entry point
 │   ├── index.html                    # HTML template
 │   ├── package.json                  # Node.js dependencies and scripts
-│   ├── package-lock.json             # NPM lock file
 │   ├── postcss.config.js             # PostCSS configuration
 │   ├── tailwind.config.js            # Tailwind CSS configuration
 │   ├── tsconfig.json                 # TypeScript configuration
 │   ├── vite.config.ts                # Vite build configuration
-│   ├── TODO.md                       # Frontend development tasks
-│   └── .gitignore                    # Git ignore file
-├── chrome-extension/                 # Chrome extension for video/camera access
-│   ├── manifest.json                 # Extension manifest
-│   ├── background.js                 # Background script
-│   ├── injected.js                   # Content script
-│   ├── popup.js                      # Popup script
-│   └── popup.html                    # Popup HTML
-├── scripts/                          # Utility scripts
-│   ├── test_openrouter.py            # OpenRouter testing script
-│   └── verify_openrouter_key.py      # API key verification script
+│   └── TODO.md                       # Frontend development tasks
 ├── docker-compose.dev.yml            # Development Docker Compose
 ├── docker-compose.prod.yml           # Production Docker Compose
 ├── Makefile                          # Build automation scripts
-├── README.md                         # This file
-├── start.md                          # Quick start guide
 ├── TODO.md                           # Project-wide development tasks
-├── test_imports.py                   # Import testing script
-└── .gitignore                        # Git ignore file
+└── README.md                         # This file
 ```
 
 ## File Details
@@ -327,20 +216,6 @@ ai-mock-interview-simulator/
 - **Containerization**: Docker with multi-stage builds
 - **Orchestration**: Docker Compose for development/production
 - **Build Automation**: Makefile for common tasks
-
-## Live Application
-
-The application is deployed and available at:
-
-- **Frontend**: https://intervize.vercel.app/
-- **Backend API**: https://iit-b-finals.onrender.com/
-- **For Backend API checks**: https://iit-b-finals.onrender.com/docs
-
-### Usage Instructions
-
-1. **Start with Render**: Begin your interview sessions using the Render deployment for optimal performance
-2. **Fallback to Vercel**: If you experience server resets or downtime on Render, switch to the Vercel deployment simultaneously
-3. **Seamless Experience**: Both deployments provide the same functionality and data persistence
 
 ## Setup and Installation
 
@@ -474,11 +349,11 @@ cd frontend && npm run lint
 
 ## License
 
-This project is under the GUVI HCL and IIT Bombay.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
 
 - Built with FastAPI and React
-- AI capabilities powered by Hugging Face Transformer models
+- AI capabilities powered by OpenAI GPT models
 - UI components styled with Tailwind CSS
 - Icons from Lucide React

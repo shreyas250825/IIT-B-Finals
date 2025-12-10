@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../layout/Layout';
-import {
+import { 
   Video, Brain, Clock, Target, TrendingUp,
   Calendar, PlayCircle, BookOpen, Trophy, Zap, CheckCircle,
-  Star, ArrowRight, Plus, History,
-  ChevronRight, Activity, FileText
+  Star, ArrowRight, Plus, History, ChevronRight, Activity, FileText
 } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  useState('overview'); // activeTab state kept for potential future use
   const [userProfile, setUserProfile] = useState<any>(null);
   const [interviewHistory, setInterviewHistory] = useState<any[]>([]);
 

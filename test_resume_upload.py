@@ -15,7 +15,7 @@ Projects: Built a web application using React and Node.js'''
 
     # Create a temporary file
     with open('test_resume.txt', 'w') as f:
-        f.write(test_content)
+        f.write(test_content)  
 
     try:
         # Test the local endpoint

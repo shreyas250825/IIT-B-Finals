@@ -51,14 +51,14 @@ const ManualSetup: React.FC = () => {
             <p className="text-gray-400 text-lg">
               Choose or enter the role you want to interview for
             </p>
-          </div>
+      </div>
 
           <div className="max-w-3xl mx-auto">
             {/* Common Roles Grid */}
             <div className="mb-6">
               <label className="block text-sm font-semibold text-gray-300 mb-3">
                 Select from common roles
-              </label>
+        </label>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {roles.map((role) => (
                   <button
@@ -75,15 +75,15 @@ const ManualSetup: React.FC = () => {
                   >
                     {role}
                   </button>
-                ))}
+          ))}
               </div>
-            </div>
+      </div>
 
             {/* Custom Role Input */}
             <div className="mb-6">
               <label className="block text-sm font-semibold text-gray-300 mb-3">
                 Or enter a custom role
-              </label>
+        </label>
               <input
                 type="text"
                 value={customRole}
@@ -94,10 +94,10 @@ const ManualSetup: React.FC = () => {
                 placeholder="e.g., Machine Learning Engineer"
                 className="w-full p-4 bg-slate-900/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-sky-400/50 focus:ring-2 focus:ring-sky-400/20 transition-all"
               />
-            </div>
+      </div>
 
             {/* Next Button */}
-            <button
+      <button
               onClick={handleNext}
               disabled={!selectedRole && !customRole.trim()}
               className="relative w-full group overflow-hidden mt-6"
@@ -111,11 +111,12 @@ const ManualSetup: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-            </button>
+      </button>
           </div>
         </>
       ) : (
         <InterviewSetup
+          parsedData={{}}
           selectedRole={customRole.trim() || selectedRole}
           onStart={handleStartInterview}
         />
