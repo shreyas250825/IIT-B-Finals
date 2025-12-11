@@ -1,14 +1,32 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Sparkles, Mic, BarChart3, Home, Info, User, Menu, X, LogOut } from 'lucide-react';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeLink, setActiveLink] = useState('home');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userName, setUserName] = useState<string>('');
+  
+  // Set active link based on current path
+  const getActiveLink = () => {
+    const path = location.pathname;
+    if (path === '/') return 'home';
+    if (path.startsWith('/setup') || path.startsWith('/interview')) return 'interview';
+    if (path.startsWith('/dashboard')) return 'dashboard';
+    if (path.startsWith('/reports') || path.startsWith('/report')) return 'reports';
+    if (path.startsWith('/about')) return 'about';
+    return '';
+  };
+  
+  const [activeLink, setActiveLink] = useState(getActiveLink());
+  
+  // Update active link when route changes
+  useEffect(() => {
+    setActiveLink(getActiveLink());
+  }, [location.pathname]);
   
   // Check authentication status
   useEffect(() => {
@@ -115,10 +133,7 @@ const Navbar = () => {
               {navLinks.map((link) => (
                 <button
                   key={link.id}
-                  onClick={() => {
-                    setActiveLink(link.id);
-                    navigate(link.href);
-                  }}
+                  onClick={() => navigate(link.href)}
                   className={`relative px-5 py-2.5 rounded-xl font-medium transition-all duration-300 group ${
                     activeLink === link.id
                       ? 'text-white'
