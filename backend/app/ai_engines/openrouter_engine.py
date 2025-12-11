@@ -322,8 +322,8 @@ def _get_fallback_questions(role: str, interview_type: str, persona: str) -> Lis
 
     persona_prefixes = {
         "male": "",
-        "female": "I'd love to hear about ",
-        "bossy_female": "I need you to explain ",
+        "female": "",
+        "bossy_female": "",
     }
     prefix = persona_prefixes.get(persona, "")
 
