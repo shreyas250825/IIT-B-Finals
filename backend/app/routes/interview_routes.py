@@ -6,8 +6,12 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import uuid
 
-from app.ai_engines import cloud_llm_engine
-from app.ai_engines.openrouter_engine import generate_final_report
+from app.ai_engines.openrouter_engine import (
+    generate_questions_from_profile,
+    evaluate_answer,
+    improve_answer,
+    generate_final_report
+)
 
 router = APIRouter()
 
@@ -88,29 +92,12 @@ def start(req: StartReq) -> StartRes:
   profile["interview_type"] = interview_type
   profile["persona"] = persona
 
-  # Use OpenRouter engine for question generation
-  questions = cloud_llm_engine.generate_questions(profile, interview_type, persona, "round1")
-  if not questions or len(questions) < 6:
-    # Fallback: Generate 7 questions if HF fails or returns too few
-    role = req.profile.get("role", req.profile.get("estimated_role", "Software Engineer"))
-    questions = [
-      {"id": "q1", "text": "Tell me about yourself and your background.", "difficulty": "easy"},
-      {"id": "q2", "text": f"Describe a challenging project you worked on as a {role}.", "difficulty": "medium"},
-      {"id": "q3", "text": "How do you handle tight deadlines and pressure?", "difficulty": "medium"},
-      {"id": "q4", "text": f"What technical skills do you bring to this {role} position?", "difficulty": "medium"},
-      {"id": "q5", "text": "Describe a time when you had to learn a new technology quickly.", "difficulty": "medium"},
-      {"id": "q6", "text": "How do you approach problem-solving in your work?", "difficulty": "hard"},
-      {"id": "q7", "text": f"Why are you interested in this {role} position?", "difficulty": "easy"},
-    ]
-
-  # Ensure we have exactly 7 questions
-  questions = questions[:7]
-  while len(questions) < 7:
-    questions.append({
-      "id": f"q{len(questions) + 1}",
-      "text": f"Question {len(questions) + 1}",
-      "difficulty": "medium"
-    })
+  # Generate questions using OpenRouter engine
+  questions = generate_questions_from_profile(
+      profile=profile,
+      persona=persona,
+      interview_type=interview_type
+  )
 
   SESSIONS[session_id] = {
     "profile": profile,
@@ -146,15 +133,25 @@ def answer(req: AnswerReq) -> AnswerRes:
       idx = i
       break
   
-  # Evaluate answer using OpenRouter (pass question_obj to extract expected_keywords)
-  eval_res = cloud_llm_engine.evaluate_answer(
-    question_obj or question_text, 
-    req.transcript, 
-    session.get("profile") or {}
+  # Get ideal answer and expected keywords from question
+  ideal_answer = question_obj.get("ideal_answer", "")
+  expected_keywords = question_obj.get("expected_keywords", [])
+
+  # Evaluate answer using OpenRouter
+  eval_res = evaluate_answer(
+      question_text=question_text,
+      transcript=req.transcript,
+      expected_keywords=expected_keywords,
+      profile=session.get("profile") or {},
+      ideal_answer=ideal_answer
   )
   
-  # Improve answer (only if needed - can be disabled for token saving)
-  improved = cloud_llm_engine.improve_answer(question_text, req.transcript, session.get("profile") or {})
+  # Generate improved answer
+  improved = improve_answer(
+      question_text,
+      req.transcript,
+      session.get("profile") or {}
+  )
 
   session["answers"].append(
     {

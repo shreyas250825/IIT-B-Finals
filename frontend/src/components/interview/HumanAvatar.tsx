@@ -1,6 +1,6 @@
 // src/components/interview/HumanAvatar.tsx
-import React, { useEffect, useState } from 'react';
-import { Volume2 } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Volume2, VolumeX } from 'lucide-react';
 
 interface HumanAvatarProps {
   isSpeaking: boolean;
@@ -8,20 +8,31 @@ interface HumanAvatarProps {
 }
 
 const HumanAvatar: React.FC<HumanAvatarProps> = ({ isSpeaking, currentQuestion }) => {
-  const [mouthOpen, setMouthOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isVideoReady, setIsVideoReady] = useState(false);
 
-  // Animate mouth when speaking
+  // Handle video playback based on speaking state
   useEffect(() => {
-    if (!isSpeaking) {
-      setMouthOpen(false);
-      return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isSpeaking) {
+      // When system starts speaking, play the video from start
+      video.currentTime = 0;
+      video.play().catch(e => console.error('Error playing video:', e));
+    } else {
+      // When system stops speaking, pause the video
+      video.pause();
+      video.currentTime = 0;
     }
 
-    const interval = setInterval(() => {
-      setMouthOpen((prev) => !prev);
-    }, 200); // Blink mouth animation
-
-    return () => clearInterval(interval);
+    return () => {
+      // Cleanup
+      if (video) {
+        video.pause();
+        video.currentTime = 0;
+      }
+    };
   }, [isSpeaking]);
 
   return (
@@ -33,40 +44,27 @@ const HumanAvatar: React.FC<HumanAvatarProps> = ({ isSpeaking, currentQuestion }
           <div className="absolute inset-0 bg-gradient-to-r from-sky-400 to-cyan-500 rounded-full blur-2xl opacity-50 animate-pulse" />
         )}
 
-        {/* Main Avatar Circle */}
-        <div
-          className={`relative w-48 h-48 bg-gradient-to-br from-sky-300 via-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-2xl transform transition-all duration-500 ${
-            isSpeaking ? 'scale-110 ring-4 ring-sky-400' : 'scale-100'
-          }`}
-        >
-          {/* Face Container */}
-          <div className="relative w-full h-full flex flex-col items-center justify-center">
-            {/* Eyes */}
-            <div className="flex items-center space-x-6 mb-4">
-              <div className="w-6 h-6 bg-white rounded-full relative">
-                <div className="absolute top-1 left-1 w-3 h-3 bg-sky-900 rounded-full" />
-              </div>
-              <div className="w-6 h-6 bg-white rounded-full relative">
-                <div className="absolute top-1 left-1 w-3 h-3 bg-sky-900 rounded-full" />
-              </div>
-            </div>
-
-            {/* Nose */}
-            <div className="w-2 h-4 bg-sky-800/30 rounded-full mb-3" />
-
-            {/* Mouth - Animated when speaking */}
-            <div className="relative">
-              {isSpeaking && mouthOpen ? (
-                <div className="w-12 h-6 bg-white rounded-full border-2 border-sky-800/50" />
-              ) : (
-                <div className="w-8 h-2 bg-sky-800/50 rounded-full" />
-              )}
-            </div>
+        {/* Video Avatar */}
+      <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden bg-slate-800">
+        <video
+          ref={videoRef}
+          src="/assets/Avatar Video/Female Interviewer.mp4"
+          muted
+          loop={false}
+          className="w-full h-full object-cover"
+          onCanPlay={() => setIsVideoReady(true)}
+          onEnded={() => {
+            if (videoRef.current) {
+              videoRef.current.currentTime = 0;
+            }
+          }}
+        />
+        {!isVideoReady && (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-800">
+            <div className="w-12 h-12 border-4 border-slate-600 border-t-sky-400 rounded-full animate-spin"></div>
           </div>
-
-          {/* Hair/Head Accessory */}
-          <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-32 h-20 bg-gradient-to-b from-sky-700 to-sky-600 rounded-t-full" />
-        </div>
+        )}
+      </div>
 
         {/* Speaking Indicator */}
         {isSpeaking && (
@@ -83,7 +81,7 @@ const HumanAvatar: React.FC<HumanAvatarProps> = ({ isSpeaking, currentQuestion }
       </div>
 
       {/* Status Badge */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
         <div
           className={`inline-flex items-center space-x-2 px-4 py-2 rounded-full backdrop-blur-sm border transition-all duration-300 ${
             isSpeaking
@@ -91,7 +89,11 @@ const HumanAvatar: React.FC<HumanAvatarProps> = ({ isSpeaking, currentQuestion }
               : 'bg-sky-500/20 border-sky-400 text-sky-300'
           }`}
         >
-          <Volume2 className="w-4 h-4" />
+          {isSpeaking ? (
+            <Volume2 className="w-4 h-4" />
+          ) : (
+            <VolumeX className="w-4 h-4" />
+          )}
           <span className="text-sm font-medium">
             {isSpeaking ? 'Speaking...' : 'Ready'}
           </span>

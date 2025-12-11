@@ -77,7 +77,7 @@ const Navbar = () => {
     { id: 'home', label: 'Home', icon: Home, href: '/' },
     { id: 'interview', label: 'Start Interview', icon: Mic, href: '/setup' },
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, href: '/dashboard', protected: true },
-    { id: 'reports', label: 'Report', icon: BarChart3, href: '/report', protected: true },
+    { id: 'reports', label: 'Report', icon: BarChart3, href: '/reports', protected: true },
     { id: 'about', label: 'About', icon: Info, href: '/about' }
   ].filter(link => !link.protected || isAuthenticated);
 

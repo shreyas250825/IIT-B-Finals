@@ -99,7 +99,7 @@ export async function startInterviewSimple(profile: any, role?: string, intervie
     interview_type: interviewType || profile?.interview_type || 'mixed',
     persona: persona || profile?.persona || 'male',
   };
-  const res = await fetch(`${BASE}/api/interview/start`, {
+  const res = await fetch(`${API_BASE_URL}/api/interview/start`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -116,29 +116,63 @@ export async function submitAnswerSimple(payload: {
   transcript: string;
   metrics: any;
 }) {
-  const res = await fetch(`${BASE}/api/interview/answer`, {
+  const res = await fetch(`${API_BASE_URL}/api/interview/answer`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
     body: JSON.stringify(payload),
+    credentials: 'include'  // Include cookies for session handling
   });
+  
   if (!res.ok) {
-    throw new Error(`Failed to submit answer: ${res.status}`);
+    let errorMessage = `Failed to submit answer: ${res.status} ${res.statusText}`;
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.detail || errorMessage;
+    } catch (e) {
+      // If we can't parse the error as JSON, use the status text
+      console.error('Error parsing error response:', e);
+    }
+    throw new Error(errorMessage);
   }
+  
   return res.json();
 }
 
 export async function sendMetricsSimple(metrics: any) {
-  await fetch(`${BASE}/api/metrics`, {
+  await fetch(`${API_BASE_URL}/api/metrics`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
     body: JSON.stringify(metrics),
+    credentials: 'include'
   });
 }
 
 export async function getReportSimple(sessionId: string) {
-  const res = await fetch(`${BASE}/api/interview/report/${sessionId}`);
+  const res = await fetch(`${API_BASE_URL}/api/interview/report/${sessionId}`, {
+    method: 'GET',
+    headers: { 
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include'
+  });
+  
   if (!res.ok) {
-    throw new Error(`Failed to fetch report: ${res.status}`);
+    let errorMessage = `Failed to fetch report: ${res.status} ${res.statusText}`;
+    try {
+      const errorData = await res.json();
+      errorMessage = errorData.detail || errorMessage;
+    } catch (e) {
+      console.error('Error parsing error response:', e);
+    }
+    throw new Error(errorMessage);
   }
+  
   return res.json();
 }

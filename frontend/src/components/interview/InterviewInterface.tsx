@@ -11,7 +11,7 @@ import { getReportSimple, startInterviewSimple, submitAnswerSimple } from '../..
 
 const InterviewInterface: React.FC = () => {
   const navigate = useNavigate();
-  
+
   // Interview state
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
@@ -29,34 +29,36 @@ const InterviewInterface: React.FC = () => {
   const speechSynthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const isSpeakingRef = useRef<boolean>(false);
 
-  // Webcam, speech, and face tracking hooks - MUST BE CALLED IN CONSISTENT ORDER
+  // Webcam, speech, and face tracking hooks
   const { videoRef, startWebcam, stopWebcam, isActive: webcamActive } = useWebcam();
   const speech = useSpeechRecognition();
 
-  // Face tracking hook - MUST be called before useCallback and useEffect
   useFaceTracking(videoRef, (metrics) => {
     lastMetricsRef.current = metrics;
   });
 
-  // Text-to-Speech for AI avatar with female voice - useCallback MUST come before useEffect
+  // Text-to-speech for questions
   const speakQuestion = React.useCallback((text: string) => {
-    if (!text || typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      return;
-    }
+    if (!text || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
-    // Cancel any ongoing speech
     try {
+      // Cancel any ongoing speech
       window.speechSynthesis.cancel();
-      // Wait a bit for cancellation
+      
+      // Reset speaking state
+      isSpeakingRef.current = false;
+      setIsSpeaking(false);
+      
+      // Small delay to ensure clean state
       setTimeout(() => {
         try {
           const utterance = new SpeechSynthesisUtterance(text);
           utterance.lang = 'en-US';
-          utterance.rate = 0.85; // Slightly slower for clarity
-          utterance.pitch = 1.2; // Higher pitch for female voice
-          utterance.volume = 1.0; // Maximum volume
+          utterance.rate = 0.85;
+          utterance.pitch = 1.2;
+          utterance.volume = 1.0;
 
-          // Try to find a female voice
+          // Set a female voice if available
           const voices = window.speechSynthesis.getVoices();
           if (voices.length > 0) {
             const femaleVoice = voices.find((voice) =>
@@ -68,77 +70,59 @@ const InterviewInterface: React.FC = () => {
               voice.name.toLowerCase().includes('hazel') ||
               voice.name.toLowerCase().includes('female')
             );
-            
-            if (femaleVoice) {
-              utterance.voice = femaleVoice;
-            }
+            if (femaleVoice) utterance.voice = femaleVoice;
           }
 
+          // When speech starts
           utterance.onstart = () => {
             isSpeakingRef.current = true;
             setIsSpeaking(true);
-            console.log('🔊 AI started speaking:', text);
+            
+            // Small delay to ensure video starts playing
+            setTimeout(() => {
+              if (!isSpeakingRef.current) {
+                isSpeakingRef.current = true;
+                setIsSpeaking(true);
+              }
+            }, 50);
           };
 
+          // When speech ends
           utterance.onend = () => {
             isSpeakingRef.current = false;
             setIsSpeaking(false);
             speechSynthesisRef.current = null;
-            console.log('✅ AI finished speaking');
           };
 
-          utterance.onerror = (e: any) => {
+          // Handle errors
+          utterance.onerror = (event) => {
+            console.error('Speech synthesis error:', event);
             isSpeakingRef.current = false;
             setIsSpeaking(false);
             speechSynthesisRef.current = null;
-            console.error('❌ Speech synthesis error:', e.error);
-            // Try to speak again with default settings if error occurs
-            if (e.error !== 'canceled') {
-              setTimeout(() => {
-                try {
-                  const fallbackUtterance = new SpeechSynthesisUtterance(text);
-                  fallbackUtterance.lang = 'en-US';
-                  fallbackUtterance.rate = 0.9;
-                  fallbackUtterance.volume = 1.0;
-                  window.speechSynthesis.speak(fallbackUtterance);
-                } catch (fallbackErr) {
-                  console.error('Fallback speech also failed:', fallbackErr);
-                }
-              }, 500);
-            }
           };
 
+          // Store the utterance reference
           speechSynthesisRef.current = utterance;
-          
-          // Ensure speech synthesis is ready
+
+          // Start speaking
           if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
             window.speechSynthesis.cancel();
+            // Small delay to ensure clean state before speaking again
             setTimeout(() => {
               window.speechSynthesis.speak(utterance);
             }, 100);
           } else {
             window.speechSynthesis.speak(utterance);
           }
-          
-          // Verify it's actually speaking
-          setTimeout(() => {
-            if (window.speechSynthesis.speaking) {
-              console.log('✅ Speech is playing - you should hear audio');
-            } else {
-              console.warn('⚠️ Speech may not be playing. Check:');
-              console.warn('  1. System volume is up');
-              console.warn('  2. Browser tab is not muted');
-              console.warn('  3. Browser has audio permissions');
-            }
-          }, 200);
         } catch (err) {
           console.error('Failed to create utterance:', err);
           isSpeakingRef.current = false;
           setIsSpeaking(false);
         }
       }, 300);
-    } catch (e) {
-      // Ignore
+    } catch {
+      // ignore
     }
   }, []);
 
@@ -156,34 +140,30 @@ const InterviewInterface: React.FC = () => {
     }
   }, [isMediaEnabled, webcamActive, videoRef]);
 
-  // Load voices when component mounts and suppress speech synthesis errors
+  // Load voices once
   useEffect(() => {
-    // Suppress speech synthesis errors in console
     const originalError = console.error;
     console.error = (...args: any[]) => {
-      // Filter out speech synthesis errors
       const firstArg = args[0];
       if (
-        (typeof firstArg === 'string' && 
+        (typeof firstArg === 'string' &&
           (firstArg.includes('Speech synthesis') || firstArg.includes('SpeechSynthesisErrorEvent'))) ||
-        (firstArg?.constructor?.name === 'SpeechSynthesisErrorEvent') ||
-        (args[1]?.constructor?.name === 'SpeechSynthesisErrorEvent')
+        firstArg?.constructor?.name === 'SpeechSynthesisErrorEvent' ||
+        args[1]?.constructor?.name === 'SpeechSynthesisErrorEvent'
       ) {
-        return; // Don't log speech synthesis errors
+        return;
       }
       originalError.apply(console, args);
     };
 
-    // Load voices (some browsers need this)
     const loadVoices = () => {
-      window.speechSynthesis.getVoices(); // Just trigger voice loading
+      window.speechSynthesis.getVoices();
     };
-
     loadVoices();
     window.speechSynthesis.onvoiceschanged = loadVoices;
 
     return () => {
-      console.error = originalError; // Restore original console.error
+      console.error = originalError;
       window.speechSynthesis.onvoiceschanged = null;
     };
   }, []);
@@ -203,6 +183,7 @@ const InterviewInterface: React.FC = () => {
         const role = profile.role || profile.estimated_role;
         const interviewType = profile.interviewType || profile.interview_type || 'mixed';
         const persona = profile.persona || 'male';
+
         const res = await startInterviewSimple(profile, role, interviewType, persona);
         setSessionId(res.session_id);
         const q = res.question;
@@ -211,45 +192,29 @@ const InterviewInterface: React.FC = () => {
         setCurrentQuestionId(q.id || 'q1');
         setCurrentQuestionIndex(0);
         setInterviewStage('question');
-        
-        // Store session data in localStorage for Dashboard and ReportList
+
         const sessionData = {
           session_id: res.session_id,
           role: role || 'Software Engineer',
           interview_type: interviewType,
-          persona: persona,
+          persona,
           created_at: new Date().toISOString(),
           started_at: new Date().toISOString(),
         };
-        
-        // Add to interview history
+
         const history = localStorage.getItem('interviewHistory');
         const historyArray = history ? JSON.parse(history) : [];
-        // Check if session already exists
         const existingIndex = historyArray.findIndex((h: any) => h.session_id === res.session_id);
         if (existingIndex >= 0) {
           historyArray[existingIndex] = { ...historyArray[existingIndex], ...sessionData };
         } else {
-          historyArray.unshift(sessionData); // Add to beginning
+          historyArray.unshift(sessionData);
         }
         localStorage.setItem('interviewHistory', JSON.stringify(historyArray));
-        
-        // Auto-speak the first question after a short delay (allow voices to load)
-        // Also add a user interaction requirement for some browsers
-        const speakAfterDelay = () => {
-          // Some browsers require user interaction before TTS works
-          // Try speaking immediately
+
+        setTimeout(() => {
           speakQuestion(questionText);
-          
-          // If that doesn't work, show a message
-          setTimeout(() => {
-            if (!isSpeakingRef.current) {
-              console.warn('⚠️ TTS may require user interaction. Click anywhere on the page to enable audio.');
-            }
-          }, 1000);
-        };
-        
-        setTimeout(speakAfterDelay, 2000);
+        }, 1200);
       } catch (err) {
         console.error('Failed to start interview:', err);
       } finally {
@@ -264,14 +229,14 @@ const InterviewInterface: React.FC = () => {
         window.speechSynthesis.cancel();
         isSpeakingRef.current = false;
         speechSynthesisRef.current = null;
-      } catch (e) {
-        // Ignore errors
+      } catch {
+        /* ignore */
       }
       stopWebcam();
     };
   }, [navigate, stopWebcam, speakQuestion]);
 
-  // Toggle video and audio
+  // Toggle video + audio
   const toggleMedia = async () => {
     if (isMediaEnabled) {
       stopWebcam();
@@ -290,7 +255,7 @@ const InterviewInterface: React.FC = () => {
     }
   };
 
-  // Start recording answer
+  // Start recording
   const startAnswering = () => {
     if (!isMediaEnabled && !webcamActive) {
       alert('Please enable camera and microphone first');
@@ -298,28 +263,23 @@ const InterviewInterface: React.FC = () => {
     }
 
     setInterviewStage('answering');
-    setTranscript(''); // Reset transcript completely
+    setTranscript('');
     setIsRecording(true);
 
     if (speech.supported) {
-      // Completely reset speech recognition
       if ('reset' in speech && typeof speech.reset === 'function') {
         speech.reset();
       } else {
         speech.stop();
       }
-      
-      // Wait a moment then start fresh
+
       setTimeout(() => {
-        speech.start((text) => {
-          // Replace transcript instead of appending to prevent duplication
-          setTranscript(text);
-        });
+        speech.start((text) => setTranscript(text));
       }, 200);
     }
   };
 
-  // Stop recording and submit answer
+  // Submit answer
   const submitAnswer = async () => {
     if (!sessionId || !transcript.trim()) {
       alert('Please provide an answer before submitting');
@@ -339,7 +299,6 @@ const InterviewInterface: React.FC = () => {
         metrics: lastMetricsRef.current || { eyeContact: null },
       });
 
-      // If backend provides a next question, move to it; otherwise end interview
       if (res.next_question) {
         const q = res.next_question;
         const questionText = q.text || q.question || '';
@@ -347,32 +306,24 @@ const InterviewInterface: React.FC = () => {
         setCurrentQuestionId(q.id || `q${currentQuestionIndex + 2}`);
         setCurrentQuestionIndex((prev) => prev + 1);
         setInterviewStage('question');
-        setTranscript(''); // Clear transcript completely
-        
-        // Stop any ongoing speech recognition
+        setTranscript('');
         speech.stop();
-        
-        // Auto-speak next question
-        setTimeout(() => {
-          speakQuestion(questionText);
-        }, 1000);
+
+        setTimeout(() => speakQuestion(questionText), 800);
       } else {
-        // Interview completed - fetch report and update session data
         try {
           const reportData = await getReportSimple(sessionId);
-          
-          // Update session data with final scores
           const history = localStorage.getItem('interviewHistory');
           const historyArray = history ? JSON.parse(history) : [];
           const sessionIndex = historyArray.findIndex((h: any) => h.session_id === sessionId);
-          
+
           if (sessionIndex >= 0 && reportData.evaluations && reportData.evaluations.length > 0) {
             const evals = reportData.evaluations;
             const tech = evals.reduce((sum: number, e: any) => sum + (e.technical || 0), 0) / evals.length;
             const comm = evals.reduce((sum: number, e: any) => sum + (e.communication || 0), 0) / evals.length;
             const conf = evals.reduce((sum: number, e: any) => sum + (e.confidence || 0), 0) / evals.length;
             const overall = (tech + comm + conf) / 3;
-            
+
             historyArray[sessionIndex] = {
               ...historyArray[sessionIndex],
               overall_score: overall,
@@ -383,11 +334,11 @@ const InterviewInterface: React.FC = () => {
               completed_at: new Date().toISOString(),
             };
             localStorage.setItem('interviewHistory', JSON.stringify(historyArray));
-    }
+          }
         } catch (err) {
           console.error('Failed to fetch report:', err);
         }
-        
+
         navigate(`/report?sessionId=${sessionId}`);
       }
     } catch (err) {
@@ -408,65 +359,70 @@ const InterviewInterface: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-sky-950 to-slate-900 text-white">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-sky-300 to-cyan-400 bg-clip-text text-transparent">
-            AI Mock Interview
-          </h1>
-          <div className="text-sm text-gray-400 bg-slate-800/50 px-4 py-2 rounded-lg">
-            Question {currentQuestionIndex + 1} of 7
-          </div>
-        </div>
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 lg:py-8">
 
-        {/* Main Content - Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Left Panel - Human AI Avatar */}
-          <div className="bg-slate-800/30 backdrop-blur-xl border border-white/10 rounded-3xl p-8 flex flex-col items-center justify-center min-h-[600px] relative">
-            <HumanAvatar 
-              isSpeaking={isSpeaking || interviewStage === 'question'}
-              currentQuestion={currentQuestion}
-            />
-            
-            {/* Status Message */}
-            <div className="absolute bottom-4 left-4 right-4 text-center space-y-2">
-              <p className="text-sm text-gray-400">
-                {interviewStage === 'question' && '🎧 Listen to the question...'}
-                {interviewStage === 'answering' && '🎤 Your turn to answer'}
-                {interviewStage === 'analysis' && '⏳ Analyzing your response...'}
-              </p>
+        {/* Main 2-column layout – equal ratio, full height */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-6 items-stretch">
+          {/* LEFT: Interviewer avatar + question */}
+          <div className="flex h-full flex-col rounded-3xl border border-white/10 bg-slate-900/50 backdrop-blur-xl p-6 md:p-8">
+            {/* Top: avatar centered */}
+            <div className="flex-1 flex items-center justify-center">
+              <HumanAvatar
+                isSpeaking={isSpeaking || interviewStage === 'question'}
+                currentQuestion={null} // Remove question text from avatar to prevent overlap
+              />
+            </div>
+
+            {/* Bottom: status + question bar (no absolute, no overlap) */}
+            <div className="mt-6 space-y-3">
+              {/* Status line */}
+              <div className="text-center text-xs md:text-sm text-gray-400">
+                {interviewStage === 'question' && '🎧 Listen to the question, then get ready to answer.'}
+                {interviewStage === 'answering' && '🎤 Your turn — answer naturally and confidently.'}
+                {interviewStage === 'analysis' && '⏳ Analyzing your response…'}
+              </div>
+
+              {/* Question pill */}
+              <div className="rounded-2xl bg-slate-800/80 border border-white/10 px-4 py-3 md:px-6 md:py-4">
+                <p className="text-xs uppercase tracking-wide text-sky-300 mb-1">Current Question</p>
+                <p className="text-sm md:text-base text-gray-100">
+                  {currentQuestion || 'Tell me about yourself and your background.'}
+                </p>
+              </div>
+
+              {/* Play question button */}
               {interviewStage === 'question' && currentQuestion && (
-                <button
-                  onClick={() => {
-                    speakQuestion(currentQuestion);
-                  }}
-                  className="text-xs bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/30 px-3 py-1 rounded-lg text-sky-300 transition-all"
-                  title="Click to hear the question again"
-                >
-                  🔊 Play Question Again
-                </button>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => speakQuestion(currentQuestion)}
+                    className="inline-flex items-center rounded-full border border-sky-400/40 bg-sky-500/15 px-4 py-1.5 text-xs font-medium text-sky-200 hover:bg-sky-500/25 transition"
+                  >
+                    🔊 Play Question Again
+                  </button>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Right Panel - Video Feed */}
-          <div className="bg-slate-800/30 backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold text-white">Your Video</h3>
-              <div className="flex items-center space-x-2">
+          {/* RIGHT: User video + transcript + camera button */}
+          <div className="flex h-full flex-col rounded-3xl border border-white/10 bg-slate-900/50 backdrop-blur-xl p-6 md:p-7">
+            {/* Header row */}
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h3 className="text-lg md:text-xl font-semibold text-white">Your Video</h3>
+              <div className="flex items-center gap-2 text-xs md:text-sm">
                 {isMediaEnabled || webcamActive ? (
-                  <Video className="w-5 h-5 text-green-400" />
+                  <Video className="h-4 w-4 text-emerald-400" />
                 ) : (
-                  <VideoOff className="w-5 h-5 text-red-400" />
+                  <VideoOff className="h-4 w-4 text-red-400" />
                 )}
-                <span className="text-sm text-gray-400">
+                <span className={isMediaEnabled || webcamActive ? 'text-emerald-300' : 'text-red-300'}>
                   {isMediaEnabled || webcamActive ? 'Camera On' : 'Camera Off'}
                 </span>
               </div>
-          </div>
+            </div>
 
-            {/* Video Feed */}
-            <div className="relative bg-black rounded-2xl overflow-hidden flex-1 flex items-center justify-center mb-4 min-h-[400px]">
+            {/* Video box (kept 16:9, equal card height due to flex) */}
+            <div className="relative mb-4 flex-1 rounded-2xl bg-black overflow-hidden flex items-center justify-center">
               {isMediaEnabled || webcamActive ? (
                 <video
                   ref={videoRef}
@@ -474,12 +430,8 @@ const InterviewInterface: React.FC = () => {
                   muted
                   playsInline
                   controls={false}
-                  className="w-full h-full object-cover"
-                  style={{ 
-                    transform: 'scaleX(-1)',
-                    backgroundColor: '#000',
-                    minHeight: '400px'
-                  }}
+                  className="h-full w-full object-cover"
+                  style={{ transform: 'scaleX(-1)' }}
                   onLoadedMetadata={(e) => {
                     const video = e.currentTarget;
                     if (video.paused) {
@@ -494,37 +446,37 @@ const InterviewInterface: React.FC = () => {
                       video.play().catch(() => {});
                     }
                   }}
-                  onPlay={() => {
-                    // Video is playing
-                  }}
-            />
+                />
               ) : (
                 <div className="text-center text-gray-500">
-                  <VideoOff className="w-20 h-20 mx-auto mb-4" />
-                  <p>Enable camera to start</p>
+                  <VideoOff className="mx-auto mb-4 h-14 w-14" />
+                  <p className="text-sm">Enable camera to start your interview.</p>
                 </div>
               )}
 
-              {/* Recording Indicator */}
+              {/* Recording badge */}
               {isRecording && (
-                <div className="absolute top-4 right-4 flex items-center space-x-2 bg-red-500/90 backdrop-blur-sm px-4 py-2 rounded-lg">
-                  <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
-                  <span className="text-white text-sm font-medium">RECORDING</span>
+                <div className="absolute right-4 top-4 flex items-center gap-2 rounded-full bg-red-500/95 px-3 py-1 text-xs font-semibold text-white shadow-lg">
+                  <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                  RECORDING
                 </div>
               )}
             </div>
 
-            {/* Transcript Display */}
+            {/* Transcript box */}
             {transcript && (
-              <div className="bg-slate-700/50 rounded-xl p-4 mb-4 max-h-32 overflow-y-auto">
-                <p className="text-sm text-gray-300 whitespace-pre-wrap">{transcript}</p>
+              <div className="mb-3 max-h-28 overflow-y-auto rounded-2xl bg-slate-800/70 px-4 py-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-sky-300 mb-1">
+                  Live Transcript
+                </p>
+                <p className="text-sm text-gray-100 whitespace-pre-wrap">{transcript}</p>
               </div>
             )}
 
-            {/* Media Toggle Button */}
+            {/* Camera toggle button */}
             <button
               onClick={toggleMedia}
-              className={`w-full flex items-center justify-center space-x-3 px-6 py-4 rounded-xl font-semibold transition-all duration-300 mb-4 ${
+              className={`mt-1 w-full rounded-2xl px-6 py-3 text-sm md:text-base font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
                 isMediaEnabled || webcamActive
                   ? 'bg-red-600 hover:bg-red-700 text-white'
                   : 'bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white'
@@ -532,48 +484,49 @@ const InterviewInterface: React.FC = () => {
             >
               {isMediaEnabled || webcamActive ? (
                 <>
-                  <VideoOff className="w-5 h-5" />
-                  <span>Turn Off Camera & Audio</span>
+                  <VideoOff className="h-4 w-4" />
+                  <span>Turn Off Camera &amp; Audio</span>
                 </>
               ) : (
                 <>
-                  <Video className="w-5 h-5" />
-                  <span>Turn On Camera & Audio</span>
+                  <Video className="h-4 w-4" />
+                  <span>Turn On Camera &amp; Audio</span>
                 </>
               )}
             </button>
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="bg-slate-800/30 backdrop-blur-xl border border-white/10 rounded-3xl p-6">
+        {/* Bottom controls row – full width, no overlap */}
+        <div className="rounded-3xl border border-white/10 bg-slate-900/60 backdrop-blur-xl px-4 py-4 md:px-6 md:py-5">
           {interviewStage === 'question' && (
-            <div className="flex flex-col items-center space-y-4">
-              <p className="text-gray-400 text-center">
-                Listen to the question, then enable your camera and microphone when ready to answer
+            <div className="flex flex-col items-center gap-3 md:flex-row md:justify-between">
+              <p className="text-center text-xs md:text-sm text-gray-300 max-w-xl">
+                Listen to the question first, then enable your camera and microphone and click{' '}
+                <span className="font-semibold text-sky-300">Start Answering</span> when you are ready.
               </p>
               <button
                 onClick={startAnswering}
                 disabled={!isMediaEnabled && !webcamActive}
-                className={`flex items-center space-x-3 px-8 py-4 rounded-xl font-semibold transition-all duration-300 ${
+                className={`mt-1 inline-flex items-center justify-center gap-2 rounded-2xl px-7 py-3 text-sm font-semibold transition-all duration-300 ${
                   isMediaEnabled || webcamActive
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white transform hover:scale-105'
+                    ? 'bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-lg shadow-emerald-500/30'
                     : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                 }`}
               >
-                <Mic className="w-5 h-5" />
+                <Mic className="h-4 w-4" />
                 <span>Start Answering</span>
               </button>
             </div>
           )}
 
-        {interviewStage === 'answering' && (
-            <div className="flex flex-col items-center space-y-4">
-              <div className="flex items-center space-x-3 text-green-400 mb-2">
-                <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
-                <span className="font-semibold">Recording your answer...</span>
+          {interviewStage === 'answering' && (
+            <div className="flex flex-col items-center gap-4 md:flex-row md:justify-between">
+              <div className="flex items-center gap-2 text-sm text-emerald-300">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Recording your answer… speak naturally.</span>
               </div>
-              <div className="flex space-x-4">
+              <div className="flex flex-wrap items-center gap-3">
                 <button
                   onClick={() => {
                     setIsRecording(false);
@@ -581,44 +534,45 @@ const InterviewInterface: React.FC = () => {
                     setInterviewStage('question');
                     setTranscript('');
                   }}
-                  className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition"
                 >
-                  <Square className="w-5 h-5" />
+                  <Square className="h-4 w-4" />
                   <span>Cancel</span>
                 </button>
                 <button
                   onClick={submitAnswer}
                   disabled={!transcript.trim()}
-                  className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                  className={`inline-flex items-center gap-2 rounded-2xl px-6 py-2.5 text-sm font-semibold transition-all duration-300 ${
                     transcript.trim()
-                      ? 'bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white transform hover:scale-105'
+                      ? 'bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white shadow-lg shadow-sky-500/30'
                       : 'bg-gray-600 text-gray-400 cursor-not-allowed'
                   }`}
                 >
-                  <Send className="w-5 h-5" />
+                  <Send className="h-4 w-4" />
                   <span>Submit Answer</span>
                 </button>
               </div>
+
               {!speech.supported && (
-            <textarea
+                <textarea
                   value={transcript}
                   onChange={(e) => setTranscript(e.target.value)}
                   placeholder="Type your answer here..."
-                  className="w-full h-32 p-4 bg-slate-700 text-white rounded-xl resize-none focus:ring-2 focus:ring-sky-500 border border-white/10"
-            />
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-800/80 p-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                />
               )}
             </div>
           )}
 
           {interviewStage === 'analysis' && (
-            <div className="text-center">
-              <div className="flex items-center justify-center space-x-3 text-sky-400 mb-2">
-                <div className="w-5 h-5 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
-                <span className="font-semibold text-lg">Analyzing your response...</span>
+            <div className="flex flex-col items-center justify-center gap-2 py-2">
+              <div className="flex items-center gap-3 text-sky-300">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-sky-400 border-t-transparent" />
+                <span className="text-sm md:text-base font-semibold">Analyzing your response…</span>
+              </div>
+              <p className="text-xs md:text-sm text-gray-400">This may take a few seconds.</p>
             </div>
-              <p className="text-gray-400 text-sm">This may take a few seconds</p>
-          </div>
-        )}
+          )}
         </div>
       </div>
     </div>
@@ -626,4 +580,3 @@ const InterviewInterface: React.FC = () => {
 };
 
 export default InterviewInterface;
-
