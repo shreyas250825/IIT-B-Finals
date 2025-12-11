@@ -18,6 +18,8 @@ def setup_cors(app):
         "http://127.0.0.1:5173",
         "https://intervize.vercel.app",  # Production frontend
         "https://intervize.vercel.app/", # Production frontend with trailing slash
+        "https://iit-b-finals.onrender.com",  # Render backend
+        "https://iit-b-finals.onrender.com/", # Render backend with trailing slash
     ] + configured_origins
 
     # Remove duplicates and None values
