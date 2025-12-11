@@ -22,7 +22,7 @@ A comprehensive platform for simulating mock interviews using AI technologies. T
 - Frontend Link - https://intervize.vercel.app/
 - Backend Link - https://iit-b-finals.onrender.com/
 - API Docs Link - https://iit-b-finals.onrender.com/docs/
-- Working Examples - https://github.com/shreyas250825/IIT-B-Finals/tree/main/working%20examples , https://github.com/shreyas250825/IIT-B-Finals/blob/main/Shorter%20Documentation%20AI%20Mock%20Interview%20Simulator.pdf
+- Working Examples - https://github.com/shreyas250825/IIT-B-Finals/tree/main/working%20examples , https://drive.google.com/file/d/1_HvgCMTvJzVRMcrfGtAnf58jaDUS_fC4/view?usp=sharing
 - Technical Documentation Link(Prefer This Detailed Documentation) - https://github.com/shreyas250825/IIT-B-Finals/blob/main/AI%20Mock%20Interview%20Simulator%20Detailed%20Techical%20Documention.pdf
 - Shorter Technical Documentation Link - https://github.com/shreyas250825/IIT-B-Finals/blob/main/Shorter%20Documentation%20AI%20Mock%20Interview%20Simulator.pdf
 
