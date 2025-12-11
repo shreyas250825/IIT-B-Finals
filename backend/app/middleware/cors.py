@@ -14,6 +14,10 @@ def setup_cors(app):
         "http://127.0.0.1:3000",
         "http://localhost:3001",  # React dev server (alternative port)
         "http://127.0.0.1:3001",
+        "http://localhost:5173",  # Vite dev server
+        "http://127.0.0.1:5173",
+        "https://intervize.vercel.app",  # Production frontend
+        "https://intervize.vercel.app/", # Production frontend with trailing slash
     ] + configured_origins
 
     # Remove duplicates and None values
