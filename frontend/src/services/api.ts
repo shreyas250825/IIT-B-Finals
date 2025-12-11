@@ -1,13 +1,62 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://iit-b-finals.onrender.com';
+// Base URL for API requests - tries localhost first, falls back to Render backend
+const LOCAL_API_URL = 'http://localhost:8000';
+const RENDER_API_URL = 'https://iit-b-finals.onrender.com';
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+// Function to check if localhost is available
+const checkLocalhost = async (): Promise<boolean> => {
+  try {
+    const response = await fetch(`${LOCAL_API_URL}/health`, { method: 'HEAD' });
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+};
+
+// Initialize API base URL
+export let API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+  ? LOCAL_API_URL 
+  : RENDER_API_URL;
+
+// If running locally, check if local backend is available, if not, use Render
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  checkLocalhost().then(isLocalAvailable => {
+    if (!isLocalAvailable) {
+      console.warn('Local backend not available, falling back to Render backend');
+      API_BASE_URL = RENDER_API_URL;
+    }
+  });
+}
+
+// Create axios instance with dynamic base URL
+const createApiInstance = (baseURL: string) => {
+  return axios.create({
+    baseURL,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+};
+
+// Create initial API instance
+let api = createApiInstance(API_BASE_URL);
+
+// Function to update the API instance with a new base URL
+const updateApiBaseUrl = (newUrl: string) => {
+  API_BASE_URL = newUrl;
+  api = createApiInstance(newUrl);
+};
+
+// If running locally, check if local backend is available, if not, use Render
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  checkLocalhost().then(isLocalAvailable => {
+    if (!isLocalAvailable) {
+      console.warn('Local backend not available, falling back to Render backend');
+      updateApiBaseUrl(RENDER_API_URL);
+    }
+  });
+}
 
 // Existing types and clients (kept for compatibility with other screens)
 export interface InterviewProfile {

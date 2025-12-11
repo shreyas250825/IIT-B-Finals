@@ -280,6 +280,43 @@ async def parse_resume(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to parse resume: {str(e)}")
 
+@router.post("/parse")
+async def parse_resume(
+    file: UploadFile = File(...)
+):
+    """Parse resume file and return structured data"""
+    temp_file_path = None
+    try:
+        # Create a temporary file with the correct extension
+        file_ext = os.path.splitext(file.filename)[1].lower()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as temp_file:
+            content = await file.read()
+            if not content:
+                raise HTTPException(status_code=400, detail="Empty file provided")
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+        
+        # Parse the resume
+        parsed_data = parse_resume_simple(temp_file_path)
+        
+        return {
+            "success": True,
+            "parsed_data": parsed_data,
+            "complete": True,  # Assuming the resume is complete for now
+            "missing": []
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse resume: {str(e)}")
+        
+    finally:
+        # Clean up the temporary file
+        if temp_file_path and os.path.exists(temp_file_path):
+            try:
+                os.unlink(temp_file_path)
+            except:
+                pass
+
 @router.post("/upload")
 async def upload_resume(
     file: UploadFile = File(...)

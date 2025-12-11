@@ -7,22 +7,33 @@ def setup_cors(app):
     settings = get_settings()
 
     # Parse FRONTEND_URL which can be comma-separated
-    configured_origins = [origin.strip() for origin in settings.FRONTEND_URL.split(",")]
+    configured_origins = [origin.strip() for origin in (settings.FRONTEND_URL or "").split(",") if origin.strip()]
 
+    # Default origins for development and production
     origins = [
-        "http://localhost:3000",  # React dev server
+        # Local development
+        "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "http://localhost:3001",  # React dev server (alternative port)
+        "http://localhost:3001",
         "http://127.0.0.1:3001",
-        "http://localhost:5173",  # Vite dev server
+        "http://localhost:5173",
         "http://127.0.0.1:5173",
-        "https://intervize.vercel.app",  # Production frontend
-        "https://intervize.vercel.app/", # Production frontend with trailing slash
-        "https://iit-b-finals.onrender.com",  # Render backend
-        "https://iit-b-finals.onrender.com/", # Render backend with trailing slash
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        
+        # Render backend
+        "https://iit-b-finals.onrender.com",
+        "https://iit-b-finals.onrender.com/",
+        
+        # Vercel frontend
+        "https://intervize.vercel.app",
+        "https://intervize.vercel.app/",
     ] + configured_origins
+    
+    # Remove duplicates and empty strings
+    origins = list(dict.fromkeys([o for o in origins if o]))
 
-    # Remove duplicates and None values
+    # Add CORS middleware with the configured origins
     origins = list(set([origin for origin in origins if origin]))
     
     app.add_middleware(

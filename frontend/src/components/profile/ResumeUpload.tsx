@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ResumeReview from './ResumeReview';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+import { API_BASE_URL } from '../../services/api';
 
 const ResumeUpload: React.FC = () => {
   const navigate = useNavigate();
@@ -15,11 +15,12 @@ const ResumeUpload: React.FC = () => {
   const [parsedData, setParsedData] = useState<any>(null);
   const [showReview, setShowReview] = useState(false);
 
-  const handleFileUpload = async (file: File) => {
+    const handleFileUpload = useCallback(async (file: File) => {
     // Validate file type
     const allowedTypes = ['.pdf', '.docx', '.txt'];
     const fileExt = '.' + file.name.split('.').pop()?.toLowerCase();
-    if (!allowedTypes.includes(fileExt)) {
+    
+    if (!fileExt || !allowedTypes.includes(fileExt)) {
       setError('Please upload a PDF, DOCX, or TXT file');
       return;
     }
@@ -39,10 +40,14 @@ const ResumeUpload: React.FC = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      // Upload to backend using new parse endpoint
+      // Use the centralized API service
       const response = await fetch(`${API_BASE_URL}/api/resume/parse`, {
         method: 'POST',
         body: formData,
+        headers: {
+          // Don't set Content-Type header - let the browser set it with the correct boundary
+        },
+        credentials: 'include' // Include cookies if using session-based auth
       });
 
       if (!response.ok) {
@@ -52,33 +57,22 @@ const ResumeUpload: React.FC = () => {
 
       const data = await response.json();
       
-      if (data.success && data.parsed_data) {
-        // Check if resume is complete
-        if (!data.complete) {
-          const missingFields = data.missing || [];
-          setError(
-            `Please upload a proper resume. Some essential details are missing: ${missingFields.join(', ')}.`
-          );
-          setIsUploading(false);
-          return;
-        }
-        
-        // Store parsed data and show review screen
-        setParsedData(data.parsed_data);
-        setUploadedFile(file.name);
-        // Also store in localStorage for persistence
-        localStorage.setItem('resumeParsedData', JSON.stringify(data.parsed_data));
-        setShowReview(true);
-      } else {
+      if (!data.parsed_data) {
         throw new Error('Failed to parse resume data');
       }
+      
+      // Store parsed data in state and localStorage for persistence
+      setParsedData(data.parsed_data);
+      localStorage.setItem('resumeParsedData', JSON.stringify(data.parsed_data));
+      setUploadedFile(file.name);
+      setShowReview(true);
     } catch (err: any) {
       console.error('Resume upload error:', err);
       setError(err.message || 'Failed to upload and parse resume. Please try again.');
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [setIsUploading, setError, setParsedData, setUploadedFile, setShowReview, API_BASE_URL]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
