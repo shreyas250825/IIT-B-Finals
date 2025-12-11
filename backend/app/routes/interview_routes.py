@@ -23,19 +23,9 @@ class StartReq(BaseModel):
   persona: Optional[str] = "male"
 
 
-class Question(BaseModel):
-    id: str
-    text: str
-    followups: str
-    type: str
-    difficulty: str
-    expected_keywords: List[str]
-    expected_length: str
-    ideal_answer: str
-
 class StartRes(BaseModel):
-    session_id: str
-    question: Question
+  session_id: str
+  question: Dict[str, Any]
 
 
 class AnswerReq(BaseModel):
@@ -45,16 +35,10 @@ class AnswerReq(BaseModel):
   metrics: Dict[str, Any]
 
 
-class Evaluation(BaseModel):
-    score: float
-    feedback: str
-    strengths: List[str]
-    areas_for_improvement: List[str]
-
 class AnswerRes(BaseModel):
-    evaluation: Evaluation
-    improved: str
-    next_question: Optional[Question] = None
+  evaluation: Dict[str, Any]
+  improved: str
+  next_question: Optional[Dict[str, Any]] = None
 
 
 class MetricsReq(BaseModel):
