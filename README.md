@@ -2,13 +2,7 @@
 
 A comprehensive platform for simulating mock interviews using AI technologies. This project provides an interactive environment for users to practice interviews, receive feedback, and improve their skills through real-time analysis of technical and behavioral performance.
 
-- Percentage Completed : 70%
-- Frontend Link - https://intervize.vercel.app/
-- Backend Link - https://iit-b-finals.onrender.com/
-- API Docs Link - https://iit-b-finals.onrender.com/docs/
-- Working Examples - https://github.com/shreyas250825/IIT-B-Finals/tree/main/working%20examples
-- Technical Documentation Link(Prefer This Detailed Documentation) - https://github.com/shreyas250825/IIT-B-Finals/blob/main/AI%20Mock%20Interview%20Simulator%20Detailed%20Techical%20Documention.pdf
-- Shorter Technical Documentation Link - https://github.com/shreyas250825/IIT-B-Finals/blob/main/Shorter%20Documentation%20AI%20Mock%20Interview%20Simulator.pdf
+
 
 ## Features
 
@@ -21,6 +15,16 @@ A comprehensive platform for simulating mock interviews using AI technologies. T
 - **Comprehensive Reports**: Detailed feedback with improvement suggestions
 - **Video Recording**: Session recording for review and analysis
 - **Multi-modal Interface**: Voice and text input options
+
+## Deployed Links
+
+  - Percentage Completed : 70%
+- Frontend Link - https://intervize.vercel.app/
+- Backend Link - https://iit-b-finals.onrender.com/
+- API Docs Link - https://iit-b-finals.onrender.com/docs/
+- Working Examples - https://github.com/shreyas250825/IIT-B-Finals/tree/main/working%20examples , https://github.com/shreyas250825/IIT-B-Finals/blob/main/Shorter%20Documentation%20AI%20Mock%20Interview%20Simulator.pdf
+- Technical Documentation Link(Prefer This Detailed Documentation) - https://github.com/shreyas250825/IIT-B-Finals/blob/main/AI%20Mock%20Interview%20Simulator%20Detailed%20Techical%20Documention.pdf
+- Shorter Technical Documentation Link - https://github.com/shreyas250825/IIT-B-Finals/blob/main/Shorter%20Documentation%20AI%20Mock%20Interview%20Simulator.pdf
 
 ## Project Structure
 
@@ -357,7 +361,7 @@ cd frontend && npm run lint
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the IIT Bomaby X HCL  - see the LICENSE file for details.
 
 ## Acknowledgments
 
